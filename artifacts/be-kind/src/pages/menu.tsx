@@ -1,12 +1,16 @@
 import { PageTransition } from "@/components/page-transition";
-import { useGetMenuCategories, useGetDishes } from "@workspace/api-client-react";
-import { ChevronLeft, Search, UtensilsCrossed } from "lucide-react";
+import { useGetMenuCategories, useGetDishes, useGetCart } from "@workspace/api-client-react";
+import { useAuthStore } from "@/hooks/use-auth-store";
+import { ChevronLeft, Search, UtensilsCrossed, ShoppingCart } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
 
 export default function Menu() {
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [search, setSearch] = useState("");
+  const token = useAuthStore((state) => state.token);
+  const { data: cart } = useGetCart({ query: { enabled: !!token } });
+  const cartCount = cart?.items?.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0) || 0;
 
   const { data: categories } = useGetMenuCategories();
   const { data: dishes, isLoading } = useGetDishes({
@@ -21,7 +25,16 @@ export default function Menu() {
           <ChevronLeft size={22} />
         </button>
         <h2 className="text-lg font-serif font-bold text-foreground">Il Nostro Menù</h2>
-        <div className="w-10" />
+        <Link href="/cart">
+          <div className="relative w-10 h-10 bg-card rounded-2xl flex items-center justify-center shadow-sm text-foreground active:scale-95 transition-transform border border-border/50">
+            <ShoppingCart size={19} strokeWidth={1.8} />
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center px-1">
+                {cartCount > 99 ? '99+' : cartCount}
+              </span>
+            )}
+          </div>
+        </Link>
       </div>
 
       <div className="px-5 pt-3 pb-2">

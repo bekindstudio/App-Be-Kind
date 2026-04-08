@@ -1,9 +1,9 @@
 import { PageTransition } from "@/components/page-transition";
 import { useAuthStore } from "@/hooks/use-auth-store";
-import { useGetFeaturedDishes, useGetMe } from "@workspace/api-client-react";
+import { useGetFeaturedDishes, useGetMe, useGetCart } from "@workspace/api-client-react";
 import { customFetch } from "@workspace/api-client-react/custom-fetch";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Calendar, ShoppingBag, UtensilsCrossed, Bike, Bell, Sparkles, MapPin, Clock } from "lucide-react";
+import { ArrowRight, Calendar, ShoppingBag, UtensilsCrossed, Bike, Bell, Sparkles, MapPin, Clock, ShoppingCart } from "lucide-react";
 import { Link } from "wouter";
 import { useEffect, useState } from "react";
 
@@ -13,6 +13,8 @@ export default function Home() {
   const token = useAuthStore((state) => state.token);
   const { data: user } = useGetMe({ query: { enabled: !!token } });
   const { data: featuredDishes } = useGetFeaturedDishes();
+  const { data: cart } = useGetCart({ query: { enabled: !!token } });
+  const cartCount = cart?.items?.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0) || 0;
   const { data: events } = useQuery<any[]>({
     queryKey: ["events-home"],
     queryFn: () => customFetch<any[]>("/api/events?upcoming=true"),
@@ -40,6 +42,16 @@ export default function Home() {
           <button className="w-10 h-10 rounded-2xl bg-card text-foreground shadow-sm flex items-center justify-center hover:bg-card/80 transition-all active:scale-95 border border-border/50">
             <Bell size={19} strokeWidth={1.8} />
           </button>
+          <Link href="/cart">
+            <div className="relative w-10 h-10 rounded-2xl bg-card text-foreground shadow-sm flex items-center justify-center hover:bg-card/80 transition-all active:scale-95 border border-border/50">
+              <ShoppingCart size={19} strokeWidth={1.8} />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center px-1">
+                  {cartCount > 99 ? '99+' : cartCount}
+                </span>
+              )}
+            </div>
+          </Link>
           <Link href={token ? "/profile" : "/login"}>
             <div className="w-10 h-10 rounded-2xl overflow-hidden border border-border/50 shadow-sm transition-transform active:scale-95 bg-secondary/10 flex items-center justify-center text-secondary font-bold text-sm">
               {user ? `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}` : '👤'}

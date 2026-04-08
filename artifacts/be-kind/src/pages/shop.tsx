@@ -1,5 +1,6 @@
 import { PageTransition } from "@/components/page-transition";
-import { useGetProducts, useGetProductCategories } from "@workspace/api-client-react";
+import { useGetProducts, useGetProductCategories, useGetShopCart } from "@workspace/api-client-react";
+import { useAuthStore } from "@/hooks/use-auth-store";
 import { ChevronLeft, ShoppingBag, Search } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
@@ -7,6 +8,9 @@ import { Link } from "wouter";
 export default function Shop() {
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [search, setSearch] = useState("");
+  const token = useAuthStore((state) => state.token);
+  const { data: shopCart } = useGetShopCart({ query: { enabled: !!token } });
+  const shopCartCount = shopCart?.items?.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0) || 0;
 
   const { data: categories } = useGetProductCategories();
   const { data: products, isLoading } = useGetProducts({
@@ -22,8 +26,13 @@ export default function Shop() {
         </button>
         <h2 className="text-lg font-serif font-bold text-foreground">Be Kind Bottega</h2>
         <Link href="/shop/cart">
-          <div className="w-10 h-10 bg-card rounded-2xl flex items-center justify-center shadow-sm text-foreground active:scale-95 transition-transform border border-border/50">
-            <ShoppingBag size={19} />
+          <div className="relative w-10 h-10 bg-card rounded-2xl flex items-center justify-center shadow-sm text-foreground active:scale-95 transition-transform border border-border/50">
+            <ShoppingBag size={19} strokeWidth={1.8} />
+            {shopCartCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center px-1">
+                {shopCartCount > 99 ? '99+' : shopCartCount}
+              </span>
+            )}
           </div>
         </Link>
       </div>

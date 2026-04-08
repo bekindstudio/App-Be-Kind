@@ -1,16 +1,38 @@
 import { PageTransition } from "@/components/page-transition";
-import { useGetProducts, useGetProductCategories, useGetShopCart } from "@workspace/api-client-react";
+import { useGetProducts, useGetProductCategories, useGetShopCart, useAddToShopCart } from "@workspace/api-client-react";
 import { useAuthStore } from "@/hooks/use-auth-store";
-import { ChevronLeft, ShoppingBag, Search } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { ChevronLeft, ShoppingBag, Search, Plus } from "lucide-react";
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 
 export default function Shop() {
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [search, setSearch] = useState("");
   const token = useAuthStore((state) => state.token);
-  const { data: shopCart } = useGetShopCart({ query: { enabled: !!token } });
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const { data: shopCart, refetch: refetchCart } = useGetShopCart({ query: { enabled: !!token } });
   const shopCartCount = shopCart?.items?.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0) || 0;
+  const addToCartMutation = useAddToShopCart();
+
+  const handleQuickAdd = (e: React.MouseEvent, product: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!token) {
+      setLocation("/login");
+      return;
+    }
+    addToCartMutation.mutate({ data: { productId: product.id, quantity: 1 } }, {
+      onSuccess: () => {
+        toast({ title: "Aggiunto alla borsa", description: `1x ${product.name}` });
+        refetchCart();
+      },
+      onError: (err) => {
+        toast({ title: "Errore", description: err.message, variant: "destructive" });
+      }
+    });
+  };
 
   const { data: categories } = useGetProductCategories();
   const { data: products, isLoading } = useGetProducts({
@@ -128,8 +150,14 @@ export default function Shop() {
                       {categories?.find(c => c.slug === product.categorySlug)?.name || ''}
                     </span>
                     <h4 className="font-serif font-bold text-foreground text-sm mb-1 leading-tight line-clamp-2">{product.name}</h4>
-                    <div className="mt-auto pt-2">
+                    <div className="mt-auto pt-2 flex items-center justify-between">
                       <span className="text-secondary font-bold">€{Number(product.price).toFixed(2)}</span>
+                      <button
+                        onClick={(e) => handleQuickAdd(e, product)}
+                        className="w-8 h-8 rounded-full bg-secondary text-white flex items-center justify-center shadow-md active:scale-90 transition-transform hover:bg-secondary/90"
+                      >
+                        <Plus size={16} strokeWidth={2.5} />
+                      </button>
                     </div>
                   </div>
                 </div>

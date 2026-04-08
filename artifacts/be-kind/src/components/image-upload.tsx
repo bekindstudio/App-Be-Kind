@@ -1,16 +1,67 @@
 import { customFetch } from "@workspace/api-client-react/custom-fetch";
-import { ImageIcon, Upload, X, Loader2 } from "lucide-react";
+import { Upload, X, Loader2 } from "lucide-react";
 import { useState, useRef } from "react";
 
 interface ImageUploadProps {
   value: string;
   onChange: (url: string) => void;
   label?: string;
+  maxWidth?: number;
+  quality?: number;
 }
 
-export function ImageUpload({ value, onChange, label = "Immagine" }: ImageUploadProps) {
+const MAX_DIMENSION = 1200;
+const COMPRESSION_QUALITY = 0.75;
+
+function compressImage(file: File, maxDim: number, quality: number): Promise<{ blob: Blob; width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+
+      if (width > maxDim || height > maxDim) {
+        if (width > height) {
+          height = Math.round((height * maxDim) / width);
+          width = maxDim;
+        } else {
+          width = Math.round((width * maxDim) / height);
+          height = maxDim;
+        }
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) { reject(new Error("Canvas not supported")); return; }
+      ctx.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) { reject(new Error("Compression failed")); return; }
+          resolve({ blob, width, height });
+        },
+        "image/webp",
+        quality,
+      );
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Immagine non valida")); };
+    img.src = url;
+  });
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return bytes + " B";
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + " KB";
+  return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+}
+
+export function ImageUpload({ value, onChange, label = "Immagine", maxWidth = MAX_DIMENSION, quality = COMPRESSION_QUALITY }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+  const [compressionInfo, setCompressionInfo] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,26 +79,34 @@ export function ImageUpload({ value, onChange, label = "Immagine" }: ImageUpload
     }
 
     setError("");
+    setCompressionInfo("");
     setUploading(true);
 
     try {
+      const originalSize = file.size;
+      const { blob, width, height } = await compressImage(file, maxWidth, quality);
+      const savedPercent = Math.round((1 - blob.size / originalSize) * 100);
+      setCompressionInfo(`${formatBytes(originalSize)} → ${formatBytes(blob.size)} (${width}×${height}px${savedPercent > 0 ? `, -${savedPercent}%` : ""})`);
+
+      const optimizedFile = new File([blob], file.name.replace(/\.\w+$/, ".webp"), { type: "image/webp" });
+
       const { uploadURL, objectPath } = await customFetch<{ uploadURL: string; objectPath: string }>(
         "/api/storage/uploads/request-url",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            name: file.name,
-            size: file.size,
-            contentType: file.type,
+            name: optimizedFile.name,
+            size: optimizedFile.size,
+            contentType: optimizedFile.type,
           }),
         }
       );
 
       const uploadRes = await fetch(uploadURL, {
         method: "PUT",
-        headers: { "Content-Type": file.type },
-        body: file,
+        headers: { "Content-Type": optimizedFile.type },
+        body: optimizedFile,
       });
 
       if (!uploadRes.ok) {
@@ -81,7 +140,7 @@ export function ImageUpload({ value, onChange, label = "Immagine" }: ImageUpload
           />
           <button
             type="button"
-            onClick={() => onChange("")}
+            onClick={() => { onChange(""); setCompressionInfo(""); }}
             className="absolute top-2 right-2 w-8 h-8 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-black/80 transition-colors"
           >
             <X size={16} />
@@ -100,16 +159,23 @@ export function ImageUpload({ value, onChange, label = "Immagine" }: ImageUpload
           {uploading ? (
             <>
               <Loader2 className="w-8 h-8 text-primary animate-spin mb-2" />
-              <span className="text-sm text-muted-foreground">Caricamento...</span>
+              <span className="text-sm text-muted-foreground">Ottimizzazione e caricamento...</span>
             </>
           ) : (
             <>
               <Upload className="w-8 h-8 text-muted-foreground mb-2" />
               <span className="text-sm text-muted-foreground">Clicca per caricare un'immagine</span>
-              <span className="text-xs text-muted-foreground/60 mt-1">JPG, PNG, WebP — max 10MB</span>
+              <span className="text-xs text-muted-foreground/60 mt-1">Ottimizzata automaticamente in WebP</span>
             </>
           )}
         </label>
+      )}
+
+      {compressionInfo && (
+        <p className="text-xs text-secondary flex items-center gap-1.5">
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-secondary" />
+          {compressionInfo}
+        </p>
       )}
 
       <input

@@ -18,15 +18,15 @@ function escapeHtml(str: string | null | undefined): string {
 }
 
 const RESTAURANT_INFO = {
-  name: "Ristorante Be Kind",
-  address: "Via Mare, 15",
-  city: "47841 Cattolica (RN)",
+  name: "Be Kind di Michael Balleroni",
+  address: "Via C. Menotti, 184",
+  city: "61122 Pesaro (PU)",
   country: "Italia",
   phone: "+39 0541 830 123",
   email: "info@bekindcommunity.it",
   website: "www.bekindcommunity.it",
-  piva: "IT04123456789",
-  cf: "04123456789",
+  piva: "IT02871720419",
+  cf: "BLLMHL95D22C357W",
 };
 
 function formatDate(date: Date | string): string {

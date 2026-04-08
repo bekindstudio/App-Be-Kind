@@ -4,25 +4,44 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/hooks/use-auth-store";
 import { useToast } from "@/hooks/use-toast";
-import { useGetCart, useCreateOrder } from "@workspace/api-client-react";
-import { ArrowLeft, MapPin, Clock, Bike, Store, CreditCard, StickyNote, CheckCircle2, Truck } from "lucide-react";
-import { useState } from "react";
+import { useGetCart } from "@workspace/api-client-react";
+import { customFetch } from "@workspace/api-client-react/custom-fetch";
+import {
+  ArrowLeft, MapPin, Clock, Bike, Store, CreditCard, StickyNote,
+  CheckCircle2, Truck, Banknote, Shield, FileText, Receipt
+} from "lucide-react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
+
+const IVA_RATE = 0.10;
 
 export default function Checkout() {
   const [type, setType] = useState<"delivery" | "takeaway">("delivery");
   const [address, setAddress] = useState("");
   const [time, setTime] = useState("");
   const [notes, setNotes] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "cash">("card");
+  const [codiceFiscale, setCodiceFiscale] = useState("");
+  const [wantsFattura, setWantsFattura] = useState(false);
+  const [gdprConsent, setGdprConsent] = useState(false);
+  const [termsConsent, setTermsConsent] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const token = useAuthStore((state) => state.token);
-  const { data: cart } = useGetCart({ query: { enabled: !!token } });
-  const createOrderMutation = useCreateOrder();
+  const { data: cart, refetch: refetchCart } = useGetCart({ query: { enabled: !!token } });
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
-  const handlePlaceOrder = () => {
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("payment") === "cancelled") {
+      toast({ title: "Pagamento annullato", description: "Puoi riprovare o scegliere un altro metodo.", variant: "destructive" });
+    }
+  }, []);
+
+  const handlePlaceOrder = async () => {
     if (type === "delivery" && !address) {
       toast({ title: "Indirizzo obbligatorio", variant: "destructive" });
       return;
@@ -31,23 +50,62 @@ export default function Checkout() {
       toast({ title: "Orario di ritiro obbligatorio", variant: "destructive" });
       return;
     }
+    if (!gdprConsent) {
+      toast({ title: "Consenso privacy obbligatorio", description: "Devi accettare l'informativa sulla privacy per procedere.", variant: "destructive" });
+      return;
+    }
+    if (!termsConsent) {
+      toast({ title: "Termini obbligatori", description: "Devi accettare i termini e condizioni per procedere.", variant: "destructive" });
+      return;
+    }
+    if (wantsFattura && !codiceFiscale.trim()) {
+      toast({ title: "Codice Fiscale obbligatorio", description: "Inserisci il Codice Fiscale per ricevere la fattura.", variant: "destructive" });
+      return;
+    }
 
-    createOrderMutation.mutate({
-      data: {
-        type,
-        deliveryAddress: type === "delivery" ? address : undefined,
-        pickupTime: type === "takeaway" ? time : undefined,
-        notes: notes || undefined
+    setIsSubmitting(true);
+
+    try {
+      if (paymentMethod === "card") {
+        const result = await customFetch<{ sessionId: string; url: string }>("/api/payments/create-checkout-session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type,
+            deliveryAddress: type === "delivery" ? address : undefined,
+            pickupTime: type === "takeaway" ? time : undefined,
+            notes: notes || undefined,
+            codiceFiscale: wantsFattura ? codiceFiscale : undefined,
+            gdprConsent: true,
+          }),
+        });
+
+        if (result.url) {
+          window.location.href = result.url;
+        }
+      } else {
+        const result = await customFetch<any>("/api/payments/confirm-order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type,
+            deliveryAddress: type === "delivery" ? address : undefined,
+            pickupTime: type === "takeaway" ? time : undefined,
+            notes: notes || undefined,
+            codiceFiscale: wantsFattura ? codiceFiscale : undefined,
+            paymentMethod: "cash",
+            gdprConsent: true,
+          }),
+        });
+
+        toast({ title: "Ordine confermato!" });
+        setLocation(`/orders/${result.id}`);
       }
-    }, {
-      onSuccess: (order) => {
-        toast({ title: "Ordine confermato! 🎉" });
-        setLocation(`/orders/${order.id}`);
-      },
-      onError: (err) => {
-        toast({ title: "Ordine fallito", description: err.message, variant: "destructive" });
-      }
-    });
+    } catch (err: any) {
+      toast({ title: "Errore", description: err.message || "Si è verificato un errore.", variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!cart || cart.items.length === 0) {
@@ -61,7 +119,11 @@ export default function Checkout() {
     );
   }
 
-  const total = cart.subtotal + (type === "delivery" ? cart.deliveryCost : 0);
+  const subtotal = cart.subtotal;
+  const deliveryCost = type === "delivery" ? cart.deliveryCost : 0;
+  const total = subtotal + deliveryCost;
+  const ivaAmount = total * IVA_RATE / (1 + IVA_RATE);
+  const imponibile = total - ivaAmount;
 
   return (
     <PageTransition className="min-h-full bg-background flex flex-col pb-24">
@@ -87,9 +149,7 @@ export default function Checkout() {
               }`}
               onClick={() => setType("delivery")}
             >
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                type === "delivery" ? "bg-primary/15" : "bg-muted"
-              }`}>
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${type === "delivery" ? "bg-primary/15" : "bg-muted"}`}>
                 <Bike className={`w-6 h-6 ${type === "delivery" ? "text-primary" : "text-muted-foreground"}`} />
               </div>
               <RadioGroupItem value="delivery" id="delivery" className="sr-only" />
@@ -102,9 +162,7 @@ export default function Checkout() {
               }`}
               onClick={() => setType("takeaway")}
             >
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                type === "takeaway" ? "bg-primary/15" : "bg-muted"
-              }`}>
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${type === "takeaway" ? "bg-primary/15" : "bg-muted"}`}>
                 <Store className={`w-6 h-6 ${type === "takeaway" ? "text-primary" : "text-muted-foreground"}`} />
               </div>
               <RadioGroupItem value="takeaway" id="takeaway" className="sr-only" />
@@ -150,7 +208,7 @@ export default function Checkout() {
             Note per la Cucina
           </h3>
           <Input
-            placeholder="Allergie o richieste particolari?"
+            placeholder="Allergie, intolleranze o richieste particolari"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             className="h-12 bg-muted/30 rounded-xl border-border/50"
@@ -160,9 +218,114 @@ export default function Checkout() {
         <div className="bg-card rounded-[24px] p-5 border border-border/30 shadow-sm">
           <h3 className="font-serif text-lg font-semibold mb-4 flex items-center gap-2">
             <CreditCard className="w-5 h-5 text-primary" />
-            Riepilogo
+            Metodo di Pagamento
           </h3>
-          <div className="space-y-3 text-sm">
+          <RadioGroup defaultValue={paymentMethod} onValueChange={(v: "card" | "cash") => setPaymentMethod(v)} className="space-y-3">
+            <div
+              className={`border-2 rounded-[16px] p-4 flex items-center gap-3 cursor-pointer transition-all ${
+                paymentMethod === "card" ? "border-primary bg-primary/5" : "border-border/50 hover:bg-muted/50"
+              }`}
+              onClick={() => setPaymentMethod("card")}
+            >
+              <RadioGroupItem value="card" id="card" />
+              <CreditCard className={`w-5 h-5 ${paymentMethod === "card" ? "text-primary" : "text-muted-foreground"}`} />
+              <div className="flex-1">
+                <Label htmlFor="card" className="cursor-pointer font-semibold text-sm">Carta di Credito/Debito</Label>
+                <p className="text-[10px] text-muted-foreground">Pagamento sicuro tramite Stripe (PCI-DSS Level 1)</p>
+              </div>
+            </div>
+            <div
+              className={`border-2 rounded-[16px] p-4 flex items-center gap-3 cursor-pointer transition-all ${
+                paymentMethod === "cash" ? "border-primary bg-primary/5" : "border-border/50 hover:bg-muted/50"
+              }`}
+              onClick={() => setPaymentMethod("cash")}
+            >
+              <RadioGroupItem value="cash" id="cash" />
+              <Banknote className={`w-5 h-5 ${paymentMethod === "cash" ? "text-primary" : "text-muted-foreground"}`} />
+              <div className="flex-1">
+                <Label htmlFor="cash" className="cursor-pointer font-semibold text-sm">Contanti</Label>
+                <p className="text-[10px] text-muted-foreground">{type === "delivery" ? "Pagamento alla consegna" : "Pagamento al ritiro"}</p>
+              </div>
+            </div>
+          </RadioGroup>
+        </div>
+
+        <div className="bg-card rounded-[24px] p-5 border border-border/30 shadow-sm">
+          <h3 className="font-serif text-lg font-semibold mb-4 flex items-center gap-2">
+            <Receipt className="w-5 h-5 text-primary" />
+            Documentazione Fiscale
+          </h3>
+          <div className="flex items-start gap-3">
+            <Checkbox
+              id="fattura"
+              checked={wantsFattura}
+              onCheckedChange={(checked) => setWantsFattura(checked === true)}
+              className="mt-0.5"
+            />
+            <Label htmlFor="fattura" className="text-sm cursor-pointer leading-relaxed">
+              Desidero ricevere fattura elettronica
+            </Label>
+          </div>
+          {wantsFattura && (
+            <div className="mt-4 space-y-3">
+              <div>
+                <Label className="text-xs text-muted-foreground">Codice Fiscale / P.IVA</Label>
+                <Input
+                  placeholder="RSSMRA85M01H501Z o 01234567890"
+                  value={codiceFiscale}
+                  onChange={(e) => setCodiceFiscale(e.target.value.toUpperCase())}
+                  className="h-11 bg-muted/30 rounded-xl border-border/50 mt-1 font-mono"
+                  maxLength={16}
+                />
+              </div>
+            </div>
+          )}
+          <p className="text-[10px] text-muted-foreground mt-3">
+            Per ogni ordine viene emessa documentazione fiscale ai sensi della normativa vigente (D.P.R. 633/1972).
+          </p>
+        </div>
+
+        <div className="bg-card rounded-[24px] p-5 border border-border/30 shadow-sm">
+          <h3 className="font-serif text-lg font-semibold mb-4 flex items-center gap-2">
+            <Shield className="w-5 h-5 text-primary" />
+            Consensi e Privacy
+          </h3>
+          <div className="space-y-4">
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="gdpr"
+                checked={gdprConsent}
+                onCheckedChange={(checked) => setGdprConsent(checked === true)}
+                className="mt-0.5"
+              />
+              <Label htmlFor="gdpr" className="text-sm cursor-pointer leading-relaxed">
+                Ho letto e accetto l'{" "}
+                <Link href="/privacy" className="text-primary underline font-medium">Informativa sulla Privacy</Link>
+                {" "}ai sensi del Reg. UE 2016/679 (GDPR) <span className="text-destructive">*</span>
+              </Label>
+            </div>
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="terms"
+                checked={termsConsent}
+                onCheckedChange={(checked) => setTermsConsent(checked === true)}
+                className="mt-0.5"
+              />
+              <Label htmlFor="terms" className="text-sm cursor-pointer leading-relaxed">
+                Accetto i{" "}
+                <Link href="/terms" className="text-primary underline font-medium">Termini e Condizioni di Vendita</Link>
+                {" "}<span className="text-destructive">*</span>
+              </Label>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-card rounded-[24px] p-5 border border-border/30 shadow-sm">
+          <h3 className="font-serif text-lg font-semibold mb-4 flex items-center gap-2">
+            <FileText className="w-5 h-5 text-primary" />
+            Riepilogo Ordine
+          </h3>
+          <div className="space-y-2 text-sm">
             {cart.items.map(item => (
               <div key={item.id} className="flex justify-between text-muted-foreground">
                 <span>{item.quantity}x {item.dishName}</span>
@@ -173,16 +336,26 @@ export default function Checkout() {
           <div className="border-t border-border/30 mt-4 pt-3 space-y-2 text-sm">
             <div className="flex justify-between text-muted-foreground">
               <span>Subtotale</span>
-              <span>€{cart.subtotal.toFixed(2)}</span>
+              <span>€{subtotal.toFixed(2)}</span>
             </div>
             {type === "delivery" && (
               <div className="flex justify-between text-muted-foreground">
                 <span>Consegna</span>
-                <span>{cart.deliveryCost === 0 ? "Gratuita" : `€${cart.deliveryCost.toFixed(2)}`}</span>
+                <span>{deliveryCost === 0 ? "Gratuita" : `€${deliveryCost.toFixed(2)}`}</span>
               </div>
             )}
+            <div className="border-t border-border/20 pt-2 space-y-1">
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Imponibile</span>
+                <span>€{imponibile.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>IVA (10%)</span>
+                <span>€{ivaAmount.toFixed(2)}</span>
+              </div>
+            </div>
             <div className="flex justify-between font-bold text-lg pt-2 border-t border-border/30">
-              <span>Totale</span>
+              <span>Totale (IVA incl.)</span>
               <span className="text-primary">€{total.toFixed(2)}</span>
             </div>
           </div>
@@ -191,12 +364,17 @@ export default function Checkout() {
         <Button
           className="w-full h-14 rounded-[20px] text-lg font-medium shadow-lg"
           onClick={handlePlaceOrder}
-          disabled={createOrderMutation.isPending}
+          disabled={isSubmitting || !gdprConsent || !termsConsent}
         >
-          {createOrderMutation.isPending ? (
+          {isSubmitting ? (
             <span className="flex items-center gap-2">
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               Elaborazione...
+            </span>
+          ) : paymentMethod === "card" ? (
+            <span className="flex items-center gap-2">
+              <CreditCard className="w-5 h-5" />
+              Paga con Carta — €{total.toFixed(2)}
             </span>
           ) : (
             <span className="flex items-center gap-2">
@@ -205,6 +383,11 @@ export default function Checkout() {
             </span>
           )}
         </Button>
+
+        <p className="text-[10px] text-center text-muted-foreground pb-4 leading-relaxed">
+          I pagamenti con carta sono gestiti in sicurezza da Stripe (PCI-DSS Level 1). 
+          I dati della tua carta non vengono mai memorizzati sui nostri server.
+        </p>
       </div>
     </PageTransition>
   );

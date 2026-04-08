@@ -2,7 +2,7 @@ import { PageTransition } from "@/components/page-transition";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/hooks/use-auth-store";
 import { useGetProfile, useGetLoyaltyBalance } from "@workspace/api-client-react";
-import { ChevronRight, LogOut, User as UserIcon, Calendar, Package, Shield, Star, CreditCard, Settings, HelpCircle, Leaf } from "lucide-react";
+import { ChevronRight, LogOut, User as UserIcon, Calendar, Package, Shield, Star, CreditCard, Settings, HelpCircle, Leaf, FileText } from "lucide-react";
 import { useAdminCheck } from "@/hooks/use-admin";
 import { Link, useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -60,6 +60,8 @@ export default function Profile() {
     { icon: CreditCard, label: "Metodi di pagamento", href: "/profile/edit", desc: "Carte e pagamenti" },
     { icon: Settings, label: "Impostazioni", href: "/profile/edit", desc: "Notifiche e preferenze" },
     { icon: HelpCircle, label: "Aiuto & Supporto", href: "/profile/edit", desc: "FAQ e contatti" },
+    { icon: Shield, label: "Informativa Privacy", href: "/privacy", desc: "GDPR e trattamento dati" },
+    { icon: FileText, label: "Termini e Condizioni", href: "/terms", desc: "Condizioni di vendita" },
   ];
 
   return (

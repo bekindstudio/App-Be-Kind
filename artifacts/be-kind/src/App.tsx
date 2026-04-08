@@ -38,6 +38,9 @@ import AdminReservationsPage from "@/pages/admin/reservations";
 import AdminUsersList from "@/pages/admin/users-list";
 import AdminCategories from "@/pages/admin/categories";
 import AdminScanner from "@/pages/admin/scanner";
+import PrivacyPolicy from "@/pages/privacy-policy";
+import Terms from "@/pages/terms";
+import { CookieConsent } from "@/components/cookie-consent";
 
 const queryClient = new QueryClient();
 
@@ -77,6 +80,8 @@ function Router() {
         <Route path="/admin/utenti" component={AdminUsersList} />
         <Route path="/admin/categorie" component={AdminCategories} />
         <Route path="/admin/scanner" component={AdminScanner} />
+        <Route path="/privacy" component={PrivacyPolicy} />
+        <Route path="/terms" component={Terms} />
         <Route component={NotFound} />
       </Switch>
     </MobileLayout>
@@ -90,6 +95,7 @@ function App() {
         <TooltipProvider>
           <WouterRouter base={import.meta.env.BASE_URL?.replace(/\/$/, "") || ""}>
             <Router />
+            <CookieConsent />
           </WouterRouter>
           <Toaster />
         </TooltipProvider>

@@ -139,18 +139,18 @@ export default function Loyalty() {
             </button>
 
             <div className="flex flex-col items-center text-center">
-              <div className="w-12 h-12 rounded-full bg-[#4A6741] text-white flex items-center justify-center mb-4">
+              <div className="w-12 h-12 rounded-full bg-secondary text-white flex items-center justify-center mb-4">
                 <QrCode size={24} />
               </div>
               <h3 className="font-serif font-bold text-xl mb-1">Il tuo QR Code</h3>
               <p className="text-muted-foreground text-sm mb-6">Mostralo alla cassa per guadagnare punti e timbri</p>
-              <div className="bg-white p-4 rounded-2xl border-2 border-dashed border-[#4A6741]/20 mb-4">
+              <div className="bg-white p-4 rounded-2xl border-2 border-dashed border-secondary/20 mb-4">
                 <QRCodeSVG
                   value={qrData.qrToken}
                   size={200}
                   level="H"
                   bgColor="#FFFFFF"
-                  fgColor="#2C4A32"
+                  fgColor="#6E7A58"
                   includeMargin={false}
                 />
               </div>
@@ -173,7 +173,7 @@ export default function Loyalty() {
             <div className="flex flex-col items-center text-center mt-2">
               <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 ${
                 earnedStampIds.includes(selectedStamp.id)
-                  ? "bg-[#4A6741] text-white shadow-lg"
+                  ? "bg-secondary text-white shadow-lg"
                   : "bg-muted text-muted-foreground border-2 border-dashed border-border"
               }`}>
                 {getIcon(selectedStamp.icon, 40)}
@@ -181,12 +181,12 @@ export default function Loyalty() {
 
               <h3 className="font-serif font-bold text-2xl mb-1">{selectedStamp.title}</h3>
               <p className={`font-bold text-sm mb-4 uppercase tracking-wider ${
-                earnedStampIds.includes(selectedStamp.id) ? "text-[#4A6741]" : "text-muted-foreground"
+                earnedStampIds.includes(selectedStamp.id) ? "text-secondary" : "text-muted-foreground"
               }`}>
                 {earnedStampIds.includes(selectedStamp.id) ? "Timbro Ottenuto!" : "Da Sbloccare"}
               </p>
 
-              <div className="bg-[#FFFBF5] dark:bg-muted p-4 rounded-xl w-full text-left mb-6 border border-secondary/20">
+              <div className="bg-background dark:bg-muted p-4 rounded-xl w-full text-left mb-6 border border-secondary/20">
                 <p className="text-muted-foreground text-sm leading-relaxed">
                   {selectedStamp.actionRequired}
                 </p>
@@ -210,7 +210,7 @@ export default function Loyalty() {
           </div>
           <button
             onClick={() => setShowQr(true)}
-            className="w-10 h-10 bg-[#4A6741] text-white rounded-full flex items-center justify-center shadow-md active:scale-95 transition-transform"
+            className="w-10 h-10 bg-secondary text-white rounded-full flex items-center justify-center shadow-md active:scale-95 transition-transform"
           >
             <QrCode size={20} />
           </button>
@@ -243,7 +243,7 @@ export default function Loyalty() {
             {isLoading ? (
               <div className="h-44 bg-card rounded-3xl animate-pulse" />
             ) : (
-              <div className="bg-gradient-to-br from-[#4A6741] to-[#2C4A32] rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
+              <div className="bg-gradient-to-br from-secondary to-secondary/80 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
 
                 <div className="flex justify-between items-start mb-8 relative z-10">
@@ -265,7 +265,7 @@ export default function Loyalty() {
                   </div>
                   <div className="h-2.5 bg-black/20 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-[#C6957C] rounded-full transition-all duration-1000"
+                      className="h-full bg-primary rounded-full transition-all duration-1000"
                       style={{ width: `${progressPercent}%` }}
                     />
                   </div>
@@ -277,7 +277,7 @@ export default function Loyalty() {
               onClick={() => setShowQr(true)}
               className="w-full bg-white p-4 rounded-2xl shadow-soft border border-border flex items-center gap-4 active:scale-[0.98] transition-transform"
             >
-              <div className="w-12 h-12 rounded-xl bg-[#4A6741] text-white flex items-center justify-center shrink-0">
+              <div className="w-12 h-12 rounded-xl bg-secondary text-white flex items-center justify-center shrink-0">
                 <QrCode size={24} />
               </div>
               <div className="flex-1 text-left">
@@ -290,7 +290,7 @@ export default function Loyalty() {
             <div className="bg-card p-6 rounded-3xl shadow-sm border border-border">
               <div className="flex justify-between items-center mb-2">
                 <h3 className="font-serif font-bold text-lg">La tua Collezione</h3>
-                <span className="text-xs bg-[#E9F5E9] dark:bg-[#2C4A32]/30 text-[#4A6741] px-2.5 py-1 rounded-lg font-bold">
+                <span className="text-xs bg-accent dark:bg-secondary/30 text-secondary px-2.5 py-1 rounded-lg font-bold">
                   {earnedStampIds.length}/{STAMPS.length}
                 </span>
               </div>
@@ -305,7 +305,7 @@ export default function Loyalty() {
                       onClick={() => setSelectedStamp(stamp)}
                       className={`aspect-square rounded-2xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 ${
                         isEarned
-                          ? "bg-[#4A6741] text-white shadow-md"
+                          ? "bg-secondary text-white shadow-md"
                           : "bg-muted/50 border border-dashed border-border text-muted-foreground hover:bg-muted"
                       }`}
                     >
@@ -341,7 +341,7 @@ export default function Loyalty() {
                             {new Date(item.createdAt).toLocaleDateString("it-IT", { day: "numeric", month: "short" })}
                           </p>
                         </div>
-                        <span className={`font-bold ${item.type === "earned" ? "text-[#4A6741]" : "text-primary"}`}>
+                        <span className={`font-bold ${item.type === "earned" ? "text-secondary" : "text-primary"}`}>
                           {item.type === "earned" ? "+" : "-"}{item.points} pt
                         </span>
                       </div>
@@ -355,11 +355,11 @@ export default function Loyalty() {
 
         {activeTab === "REWARDS" && (
           <div className="space-y-4 animate-in fade-in duration-300">
-            <div className="bg-[#E9F5E9] dark:bg-[#2C4A32]/20 p-4 rounded-2xl flex items-center gap-3 mb-2">
-              <Gift className="text-[#4A6741]" size={24} />
+            <div className="bg-accent dark:bg-secondary/20 p-4 rounded-2xl flex items-center gap-3 mb-2">
+              <Gift className="text-secondary" size={24} />
               <div>
-                <p className="text-xs text-[#6B8E23] font-bold uppercase tracking-wider">Saldo Disponibile</p>
-                <p className="text-xl font-bold text-[#4A6741]">{userPoints} Punti</p>
+                <p className="text-xs text-secondary font-bold uppercase tracking-wider">Saldo Disponibile</p>
+                <p className="text-xl font-bold text-secondary">{userPoints} Punti</p>
               </div>
             </div>
 
@@ -375,7 +375,7 @@ export default function Loyalty() {
                       <div>
                         <div className="flex justify-between items-start gap-2">
                           <h4 className="font-bold text-sm">{reward.title}</h4>
-                          {canAfford ? <CheckCircle2 size={16} className="text-[#4A6741] shrink-0" /> : <Lock size={16} className="text-muted-foreground shrink-0" />}
+                          {canAfford ? <CheckCircle2 size={16} className="text-secondary shrink-0" /> : <Lock size={16} className="text-muted-foreground shrink-0" />}
                         </div>
                         <p className="text-[10px] text-muted-foreground line-clamp-2 mt-0.5">{reward.description}</p>
                       </div>
@@ -411,7 +411,7 @@ export default function Loyalty() {
               {EARN_ACTIONS.map((action) => (
                 <div key={action.id} className="bg-card p-4 rounded-2xl shadow-sm border border-border flex items-center justify-between active:scale-[0.98] transition-transform">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-[#FFFBF5] dark:bg-muted border border-secondary/20 flex items-center justify-center text-primary">
+                    <div className="w-10 h-10 rounded-full bg-background dark:bg-muted border border-secondary/20 flex items-center justify-center text-primary">
                       {getIcon(action.icon, 20)}
                     </div>
                     <div>
@@ -422,7 +422,7 @@ export default function Loyalty() {
                   <div className="flex flex-col items-end">
                     <span className="font-bold text-primary">+{action.points} pt</span>
                     {action.stamps > 0 && (
-                      <span className="text-[10px] text-[#4A6741] font-bold flex items-center gap-1">
+                      <span className="text-[10px] text-secondary font-bold flex items-center gap-1">
                         +{action.stamps} <Leaf size={8} />
                       </span>
                     )}
@@ -430,7 +430,7 @@ export default function Loyalty() {
                 </div>
               ))}
 
-              <div className="bg-gradient-to-r from-background to-[#F0F7F0] dark:to-[#2C4A32]/10 p-4 rounded-2xl shadow-sm border border-[#4A6741]/10 flex items-center justify-between">
+              <div className="bg-gradient-to-r from-background to-accent dark:to-secondary/10 p-4 rounded-2xl shadow-sm border border-secondary/10 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-card flex items-center justify-center text-primary shadow-sm">
                     <Leaf size={20} />

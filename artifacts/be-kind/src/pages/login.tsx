@@ -8,6 +8,7 @@ import { Link, useLocation } from "wouter";
 import { customFetch } from "@workspace/api-client-react/custom-fetch";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+const BASE = import.meta.env.BASE_URL;
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -75,10 +76,12 @@ export default function Login() {
 
   return (
     <PageTransition className="flex flex-col min-h-screen bg-background">
-      <div className="px-6 pt-12 pb-4">
+      <div className="px-6 pt-12 pb-4 flex items-center justify-between">
         <button onClick={() => window.history.back()} className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-soft text-secondary active:scale-95 transition-transform">
           <ChevronLeft size={24} />
         </button>
+        <img src={`${BASE}logo-terracotta.png`} alt="Be Kind" className="h-10 w-auto object-contain" />
+        <div className="w-10" />
       </div>
 
       <div className="flex-1 flex flex-col justify-center px-6 pb-12">
@@ -115,7 +118,7 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="la-tua@email.it"
-                className="w-full bg-[#F9F9F9] border border-transparent focus:border-primary focus:bg-white rounded-xl py-3 pl-10 pr-4 text-sm outline-none transition-all placeholder:text-gray-300 text-foreground font-medium"
+                className="w-full bg-muted/50 border border-transparent focus:border-primary focus:bg-white rounded-xl py-3 pl-10 pr-4 text-sm outline-none transition-all placeholder:text-gray-300 text-foreground font-medium"
                 required
               />
             </div>
@@ -129,7 +132,7 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="La tua password"
-                className="w-full bg-[#F9F9F9] border border-transparent focus:border-primary focus:bg-white rounded-xl py-3 pl-10 pr-4 text-sm outline-none transition-all placeholder:text-gray-300 text-foreground font-medium"
+                className="w-full bg-muted/50 border border-transparent focus:border-primary focus:bg-white rounded-xl py-3 pl-10 pr-4 text-sm outline-none transition-all placeholder:text-gray-300 text-foreground font-medium"
                 required
               />
             </div>

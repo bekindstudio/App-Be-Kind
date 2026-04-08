@@ -213,7 +213,7 @@ export default function AdminScanner() {
         <div className="space-y-4 animate-in fade-in duration-300">
           {!scanning ? (
             <div className="flex flex-col items-center gap-6 py-8">
-              <div className="w-24 h-24 rounded-full bg-[#4A6741] text-white flex items-center justify-center">
+              <div className="w-24 h-24 rounded-full bg-secondary text-white flex items-center justify-center">
                 <QrCode size={48} />
               </div>
               <div className="text-center">
@@ -251,7 +251,7 @@ export default function AdminScanner() {
               value={manualCode}
               onChange={(e) => setManualCode(e.target.value.toUpperCase())}
               placeholder="BK-XXXXXXXXXXXX"
-              className="w-full bg-[#F9F9F9] border border-transparent focus:border-primary focus:bg-white rounded-xl py-3 px-4 text-sm outline-none transition-all placeholder:text-gray-300 text-foreground font-mono font-medium tracking-wider text-center"
+              className="w-full bg-muted/50 border border-transparent focus:border-primary focus:bg-white rounded-xl py-3 px-4 text-sm outline-none transition-all placeholder:text-gray-300 text-foreground font-mono font-medium tracking-wider text-center"
             />
             <div className="flex gap-3 mt-4">
               <Button variant="outline" onClick={() => { setView("scanner"); setManualCode(""); }} className="flex-1 rounded-xl">Indietro</Button>
@@ -263,7 +263,7 @@ export default function AdminScanner() {
 
       {view === "user" && scannedUser && (
         <div className="space-y-4 animate-in fade-in duration-300">
-          <div className="bg-gradient-to-br from-[#4A6741] to-[#2C4A32] rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
+          <div className="bg-gradient-to-br from-secondary to-secondary/80 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
 
             <div className="flex items-center gap-4 mb-4 relative z-10">
@@ -315,7 +315,7 @@ export default function AdminScanner() {
               />
               <button
                 onClick={() => setPointsToAward(pointsToAward + 10)}
-                className="w-10 h-10 rounded-full bg-[#4A6741] text-white flex items-center justify-center active:scale-95 transition-transform"
+                className="w-10 h-10 rounded-full bg-secondary text-white flex items-center justify-center active:scale-95 transition-transform"
               >
                 <Plus size={18} />
               </button>
@@ -340,7 +340,7 @@ export default function AdminScanner() {
               value={awardReason}
               onChange={(e) => setAwardReason(e.target.value)}
               placeholder="Motivo (es. pranzo, brunch...)"
-              className="w-full bg-[#F9F9F9] border border-transparent focus:border-primary focus:bg-white rounded-xl py-3 px-4 text-sm outline-none transition-all placeholder:text-gray-300 text-foreground font-medium mb-4"
+              className="w-full bg-muted/50 border border-transparent focus:border-primary focus:bg-white rounded-xl py-3 px-4 text-sm outline-none transition-all placeholder:text-gray-300 text-foreground font-medium mb-4"
             />
 
             <Button
@@ -354,7 +354,7 @@ export default function AdminScanner() {
 
           <div className="bg-card p-5 rounded-3xl border border-border shadow-sm">
             <h3 className="font-serif font-bold text-lg mb-4 flex items-center gap-2">
-              <Leaf size={20} className="text-[#4A6741]" /> Assegna Timbri
+              <Leaf size={20} className="text-secondary" /> Assegna Timbri
             </h3>
             <div className="grid grid-cols-4 gap-3">
               {STAMPS.map((stamp) => {
@@ -366,8 +366,8 @@ export default function AdminScanner() {
                     disabled={isEarned}
                     className={`aspect-square rounded-2xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 ${
                       isEarned
-                        ? "bg-[#4A6741] text-white shadow-md"
-                        : "bg-muted/50 border border-dashed border-border text-muted-foreground hover:bg-[#4A6741]/10 hover:border-[#4A6741]/30"
+                        ? "bg-secondary text-white shadow-md"
+                        : "bg-muted/50 border border-dashed border-border text-muted-foreground hover:bg-secondary/10 hover:border-secondary/30"
                     }`}
                   >
                     {isEarned && <CheckCircle2 size={14} className="absolute" />}
@@ -393,7 +393,7 @@ export default function AdminScanner() {
                         {new Date(item.createdAt).toLocaleDateString("it-IT", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                       </p>
                     </div>
-                    <span className={`font-bold ${item.type === "earned" ? "text-[#4A6741]" : "text-primary"}`}>
+                    <span className={`font-bold ${item.type === "earned" ? "text-secondary" : "text-primary"}`}>
                       {item.type === "earned" ? "+" : "-"}{item.points} pt
                     </span>
                   </div>

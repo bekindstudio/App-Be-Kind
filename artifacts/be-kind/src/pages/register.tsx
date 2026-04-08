@@ -9,6 +9,7 @@ import { Link, useLocation } from "wouter";
 import { customFetch } from "@workspace/api-client-react/custom-fetch";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+const BASE = import.meta.env.BASE_URL;
 
 export default function Register() {
   const [firstName, setFirstName] = useState("");
@@ -85,10 +86,12 @@ export default function Register() {
 
   return (
     <PageTransition className="flex flex-col min-h-screen bg-background">
-      <div className="px-6 pt-12 pb-4">
+      <div className="px-6 pt-12 pb-4 flex items-center justify-between">
         <button onClick={() => window.history.back()} className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-soft text-secondary active:scale-95 transition-transform">
           <ChevronLeft size={24} />
         </button>
+        <img src={`${BASE}logo-terracotta.png`} alt="Be Kind" className="h-10 w-auto object-contain" />
+        <div className="w-10" />
       </div>
 
       <div className="flex-1 flex flex-col px-6 pb-12">
@@ -119,7 +122,7 @@ export default function Register() {
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   placeholder="Mario"
-                  className="w-full bg-[#F9F9F9] border border-transparent focus:border-primary focus:bg-white rounded-xl py-3 px-4 text-sm outline-none transition-all placeholder:text-gray-300 text-foreground font-medium"
+                  className="w-full bg-muted/50 border border-transparent focus:border-primary focus:bg-white rounded-xl py-3 px-4 text-sm outline-none transition-all placeholder:text-gray-300 text-foreground font-medium"
                   required
                 />
               </div>
@@ -130,7 +133,7 @@ export default function Register() {
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   placeholder="Rossi"
-                  className="w-full bg-[#F9F9F9] border border-transparent focus:border-primary focus:bg-white rounded-xl py-3 px-4 text-sm outline-none transition-all placeholder:text-gray-300 text-foreground font-medium"
+                  className="w-full bg-muted/50 border border-transparent focus:border-primary focus:bg-white rounded-xl py-3 px-4 text-sm outline-none transition-all placeholder:text-gray-300 text-foreground font-medium"
                   required
                 />
               </div>
@@ -145,7 +148,7 @@ export default function Register() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="mario.rossi@email.com"
-                  className="w-full bg-[#F9F9F9] border border-transparent focus:border-primary focus:bg-white rounded-xl py-3 pl-10 pr-4 text-sm outline-none transition-all placeholder:text-gray-300 text-foreground font-medium"
+                  className="w-full bg-muted/50 border border-transparent focus:border-primary focus:bg-white rounded-xl py-3 pl-10 pr-4 text-sm outline-none transition-all placeholder:text-gray-300 text-foreground font-medium"
                   required
                 />
               </div>
@@ -160,7 +163,7 @@ export default function Register() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+39 333 1234567"
-                  className="w-full bg-[#F9F9F9] border border-transparent focus:border-primary focus:bg-white rounded-xl py-3 pl-10 pr-4 text-sm outline-none transition-all placeholder:text-gray-300 text-foreground font-medium"
+                  className="w-full bg-muted/50 border border-transparent focus:border-primary focus:bg-white rounded-xl py-3 pl-10 pr-4 text-sm outline-none transition-all placeholder:text-gray-300 text-foreground font-medium"
                 />
               </div>
             </div>
@@ -174,7 +177,7 @@ export default function Register() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Crea una password sicura"
-                  className="w-full bg-[#F9F9F9] border border-transparent focus:border-primary focus:bg-white rounded-xl py-3 pl-10 pr-4 text-sm outline-none transition-all placeholder:text-gray-300 text-foreground font-medium"
+                  className="w-full bg-muted/50 border border-transparent focus:border-primary focus:bg-white rounded-xl py-3 pl-10 pr-4 text-sm outline-none transition-all placeholder:text-gray-300 text-foreground font-medium"
                   required
                 />
               </div>

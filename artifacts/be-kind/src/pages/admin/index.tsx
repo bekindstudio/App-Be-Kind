@@ -71,7 +71,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="mb-6">
-        <AdminCard href="/admin/scanner" icon={<QrCode className="w-6 h-6" />} title="Scanner Fedeltà" subtitle="Scansiona QR per assegnare punti e timbri" color="bg-[#4A6741]/10 text-[#4A6741]" />
+        <AdminCard href="/admin/scanner" icon={<QrCode className="w-6 h-6" />} title="Scanner Fedeltà" subtitle="Scansiona QR per assegnare punti e timbri" color="bg-secondary/10 text-secondary" />
       </div>
 
       <div className="space-y-2 mb-6">

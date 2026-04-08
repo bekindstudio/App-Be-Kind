@@ -28,7 +28,7 @@ function BottomNav() {
   ];
 
   return (
-    <nav className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-3 pb-6 shadow-[0_-5px_20px_rgba(0,0,0,0.03)] z-50 flex justify-between items-end">
+    <nav className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-gray-100/60 px-4 pt-2 pb-5 shadow-[0_-4px_20px_rgba(0,0,0,0.04)] z-50 flex justify-around items-center">
       {navItems.map((item) => {
         const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
         return (
@@ -36,21 +36,24 @@ function BottomNav() {
             key={item.href}
             href={item.href}
             className={cn(
-              "flex flex-col items-center gap-1 w-16 transition-all duration-300",
-              isActive ? "text-primary" : "text-gray-400 hover:text-gray-600"
+              "flex flex-col items-center gap-0.5 min-w-[56px] py-1 transition-all duration-200",
+              isActive ? "text-primary" : "text-gray-400"
             )}
             data-testid={`nav-${item.label.toLowerCase().replace(' ', '-')}`}
           >
-            <div className="relative">
+            <div className={cn(
+              "relative flex items-center justify-center w-10 h-8 rounded-2xl transition-all duration-200",
+              isActive ? "bg-primary/10" : ""
+            )}>
               <item.icon
-                size={24}
-                strokeWidth={isActive ? 2.5 : 2}
+                size={22}
+                strokeWidth={isActive ? 2.5 : 1.8}
                 fill={isActive && item.label === "Be Kind" ? "currentColor" : "none"}
               />
             </div>
             <span className={cn(
-              "text-[10px] font-bold transition-all",
-              isActive ? "text-primary" : "text-transparent"
+              "text-[10px] font-semibold transition-colors",
+              isActive ? "text-primary" : "text-gray-400"
             )}>
               {item.label}
             </span>

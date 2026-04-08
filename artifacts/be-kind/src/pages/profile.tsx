@@ -62,7 +62,7 @@ export default function Profile() {
 
   return (
     <PageTransition className="flex flex-col min-h-full bg-background pb-24">
-      <div className="px-6 pt-12 pb-6 bg-gradient-to-r from-[#FFFBF5] to-white border-b border-gray-50">
+      <div className="px-6 pt-12 pb-6 bg-gradient-to-r from-background to-white border-b border-gray-50">
         {isLoading ? (
           <div className="flex items-center gap-4 animate-pulse">
             <div className="w-16 h-16 rounded-full bg-muted" />
@@ -91,7 +91,7 @@ export default function Profile() {
       <div className="px-4 flex flex-col gap-4 pt-4">
         {loyalty && (
           <Link href="/loyalty">
-            <div className="bg-gradient-to-br from-[#4A6741] to-[#2C4A32] rounded-3xl p-5 text-white shadow-soft active:scale-[0.98] transition-transform cursor-pointer relative overflow-hidden">
+            <div className="bg-gradient-to-br from-secondary to-secondary/80 rounded-3xl p-5 text-white shadow-soft active:scale-[0.98] transition-transform cursor-pointer relative overflow-hidden">
               <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
               <div className="flex justify-between items-center relative z-10">
                 <div>

@@ -7,7 +7,7 @@ import { ArrowRight, Calendar, ShoppingBag, UtensilsCrossed, Bike, Bell } from "
 import { Link } from "wouter";
 import { useEffect, useState } from "react";
 
-const LOGO_COLOR_URI = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 80'%3E%3Cstyle%3E@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@600');%3C/style%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-family='Fredoka, sans-serif' font-weight='600' font-size='50' fill='%23C6957C' letter-spacing='2'%3EBE KIND%3C/text%3E%3C/svg%3E";
+const BASE = import.meta.env.BASE_URL;
 
 export default function Home() {
   const token = useAuthStore((state) => state.token);
@@ -27,7 +27,7 @@ export default function Home() {
     <PageTransition className="flex flex-col min-h-full bg-background">
       <div className="px-6 pt-12 pb-6 flex justify-between items-center bg-background sticky top-0 z-20">
         <div className={`transition-all duration-1000 ease-out transform origin-left ${animateLogo ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-4 opacity-0 scale-95'}`}>
-          <img src={LOGO_COLOR_URI} alt="Be Kind Logo" className="h-14 w-auto object-contain" />
+          <img src={`${BASE}logo-terracotta.png`} alt="Be Kind Logo" className="h-10 w-auto object-contain" />
         </div>
         <div className="flex gap-3">
           <button className="w-10 h-10 rounded-full bg-white text-primary shadow-soft flex items-center justify-center hover:bg-primary/5 transition-all active:scale-95">
@@ -56,7 +56,7 @@ export default function Home() {
               alt="Promo"
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#676959]/90 to-transparent flex flex-col justify-end p-6">
+            <div className="absolute inset-0 bg-gradient-to-t from-secondary/90 to-transparent flex flex-col justify-end p-6">
               <span className="bg-primary text-white text-[10px] font-bold px-3 py-1.5 rounded-full w-fit mb-2 shadow-sm tracking-wide uppercase">Menu Primavera</span>
               <h4 className="text-white font-serif font-bold text-2xl mb-1">Nuovi Sapori</h4>
               <div className="flex items-center gap-2 text-white/90 text-sm font-medium group-hover:translate-x-1 transition-transform">

@@ -141,7 +141,7 @@ export default function EventDetailPage() {
 
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div className="bg-white p-3 rounded-2xl shadow-sm border border-secondary/10 flex items-center gap-3">
-              <div className="bg-[#FFFBF5] p-2.5 rounded-xl text-primary">
+              <div className="bg-background p-2.5 rounded-xl text-primary">
                 <Calendar size={18} />
               </div>
               <div>
@@ -150,7 +150,7 @@ export default function EventDetailPage() {
               </div>
             </div>
             <div className="bg-white p-3 rounded-2xl shadow-sm border border-secondary/10 flex items-center gap-3">
-              <div className="bg-[#FFFBF5] p-2.5 rounded-xl text-primary">
+              <div className="bg-background p-2.5 rounded-xl text-primary">
                 <Clock size={18} />
               </div>
               <div>
@@ -161,7 +161,7 @@ export default function EventDetailPage() {
           </div>
 
           <div className="bg-white p-3 rounded-2xl shadow-sm border border-secondary/10 flex items-center gap-3 mb-6">
-            <div className="bg-[#FFFBF5] p-2.5 rounded-xl text-primary">
+            <div className="bg-background p-2.5 rounded-xl text-primary">
               <MapPin size={18} />
             </div>
             <div>

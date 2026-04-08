@@ -76,55 +76,56 @@
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
 
-  /* Creamy off-white background */
-  --background: 40 33% 97%;
-  --foreground: 24 10% 10%;
+  /* Warm cream background - from palette color 3 */
+  --background: 30 40% 96%;
+  --foreground: 24 12% 12%;
 
-  /* Olive / Terracotta accents */
-  --border: 40 20% 85%;
+  /* Brand palette borders */
+  --border: 30 20% 86%;
   
   --card: 0 0% 100%;
-  --card-foreground: 24 10% 10%;
-  --card-border: 40 20% 90%;
+  --card-foreground: 24 12% 12%;
+  --card-border: 30 20% 90%;
 
-  --sidebar: 40 33% 97%;
-  --sidebar-foreground: 24 10% 10%;
-  --sidebar-border: 40 20% 85%;
-  --sidebar-primary: 15 50% 45%;
-  --sidebar-primary-foreground: 40 33% 97%;
-  --sidebar-accent: 70 20% 88%;
-  --sidebar-accent-foreground: 24 10% 10%;
-  --sidebar-ring: 15 50% 45%;
+  --sidebar: 30 40% 96%;
+  --sidebar-foreground: 24 12% 12%;
+  --sidebar-border: 30 20% 86%;
+  --sidebar-primary: 22 38% 52%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 54 14% 88%;
+  --sidebar-accent-foreground: 24 12% 12%;
+  --sidebar-ring: 22 38% 52%;
 
-  --popover: 40 33% 97%;
-  --popover-foreground: 24 10% 10%;
-  --popover-border: 40 20% 85%;
+  --popover: 30 40% 96%;
+  --popover-foreground: 24 12% 12%;
+  --popover-border: 30 20% 86%;
 
-  /* Warm Terracotta */
-  --primary: 15 60% 50%;
+  /* Palette color 1 - Warm terracotta #C09A7C */
+  --primary: 22 38% 58%;
   --primary-foreground: 0 0% 100%;
 
-  /* Warm Olive */
-  --secondary: 75 30% 40%;
-  --secondary-foreground: 40 33% 97%;
+  /* Palette color 6 - Dark olive #6E7A58 */
+  --secondary: 80 16% 41%;
+  --secondary-foreground: 30 40% 96%;
 
-  --muted: 40 20% 92%;
-  --muted-foreground: 24 10% 40%;
+  --muted: 30 18% 92%;
+  --muted-foreground: 24 10% 42%;
 
-  --accent: 40 30% 90%;
-  --accent-foreground: 24 10% 20%;
+  /* Palette color 4 - Light sage #B0AD8E */
+  --accent: 54 16% 90%;
+  --accent-foreground: 24 12% 20%;
 
-  --destructive: 0 70% 50%;
+  --destructive: 0 65% 50%;
   --destructive-foreground: 0 0% 100%;
 
-  --input: 40 20% 85%;
-  --ring: 15 50% 45%;
+  --input: 30 18% 86%;
+  --ring: 22 38% 52%;
   
-  --chart-1: 15 60% 50%;
-  --chart-2: 75 30% 40%;
-  --chart-3: 35 70% 55%;
-  --chart-4: 20 50% 60%;
-  --chart-5: 80 20% 50%;
+  --chart-1: 22 38% 58%;
+  --chart-2: 80 16% 41%;
+  --chart-3: 30 28% 66%;
+  --chart-4: 54 16% 56%;
+  --chart-5: 80 14% 50%;
 
   --app-font-sans: 'Inter', sans-serif;
   --app-font-serif: 'Playfair Display', Georgia, serif;
@@ -144,42 +145,42 @@
 }
 
 .dark {
-  --background: 24 15% 10%;
-  --foreground: 40 33% 97%;
+  --background: 24 14% 10%;
+  --foreground: 30 35% 96%;
 
-  --border: 24 15% 20%;
+  --border: 24 14% 20%;
 
-  --card: 24 15% 12%;
-  --card-foreground: 40 33% 97%;
-  --card-border: 24 15% 20%;
+  --card: 24 14% 13%;
+  --card-foreground: 30 35% 96%;
+  --card-border: 24 14% 20%;
 
-  --popover: 24 15% 12%;
-  --popover-foreground: 40 33% 97%;
-  --popover-border: 24 15% 20%;
+  --popover: 24 14% 13%;
+  --popover-foreground: 30 35% 96%;
+  --popover-border: 24 14% 20%;
 
-  --primary: 15 50% 45%;
+  --primary: 22 38% 50%;
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 75 25% 35%;
-  --secondary-foreground: 40 33% 97%;
+  --secondary: 80 14% 34%;
+  --secondary-foreground: 30 35% 96%;
 
-  --muted: 24 15% 20%;
-  --muted-foreground: 40 10% 70%;
+  --muted: 24 14% 20%;
+  --muted-foreground: 30 10% 68%;
 
-  --accent: 24 15% 20%;
-  --accent-foreground: 40 33% 97%;
+  --accent: 24 14% 20%;
+  --accent-foreground: 30 35% 96%;
 
   --destructive: 0 60% 45%;
   --destructive-foreground: 0 0% 100%;
 
-  --input: 24 15% 25%;
-  --ring: 15 50% 45%;
+  --input: 24 14% 25%;
+  --ring: 22 38% 50%;
 
-  --chart-1: 15 50% 45%;
-  --chart-2: 75 25% 35%;
-  --chart-3: 35 60% 50%;
-  --chart-4: 20 45% 55%;
-  --chart-5: 80 15% 45%;
+  --chart-1: 22 38% 50%;
+  --chart-2: 80 14% 34%;
+  --chart-3: 30 25% 48%;
+  --chart-4: 54 14% 50%;
+  --chart-5: 80 12% 42%;
 }
 
 @layer base {

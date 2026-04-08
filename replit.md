@@ -118,6 +118,20 @@
 - **Stamps Table**: `user_stamps` (id, user_id, stamp_id, awarded_by, created_at)
 - **Frontend packages**: `qrcode.react` (QR display), `html5-qrcode` (camera scanner)
 
+## Branding & Design System
+
+- **Logo**: `public/logo-terracotta.png` (terracotta color, transparent background) and `public/logo-white.png` (white, transparent)
+- **Palette** (from brand guide):
+  - Color 1 - Warm terracotta: `#C09A7C` → CSS `--primary: 22 38% 58%`
+  - Color 2 - Light tan: `#C5AD94`
+  - Color 3 - Cream: `#F0DCC8` → background `--background: 30 40% 96%`
+  - Color 4 - Light sage: `#B0AD8E` → accent `--accent: 54 16% 90%`
+  - Color 5 - Medium sage: `#9A9A7E`
+  - Color 6 - Dark olive: `#6E7A58` → CSS `--secondary: 80 16% 41%`
+- **Fonts**: Inter (sans-serif body), Playfair Display (serif headings)
+- **Design tokens**: `shadow-soft`, `shadow-card`, `rounded-3xl`/`rounded-2xl`, `no-scrollbar`
+- **Bottom nav**: Always-visible labels, active tab has `bg-primary/10` pill + bold label + `text-primary`
+
 ## App Language
 
 All user-facing content is in **Italian**. Currency: EUR (€).

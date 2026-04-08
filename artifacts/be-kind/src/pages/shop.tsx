@@ -68,7 +68,7 @@ export default function Shop() {
 
       <div className="flex-1 overflow-y-auto px-6 pb-24 no-scrollbar">
         {activeCategory === "all" && (
-          <div className="bg-[#676959] rounded-3xl p-6 text-white mb-8 relative overflow-hidden shadow-soft group cursor-pointer active:scale-[0.98] transition-all">
+          <div className="bg-secondary rounded-3xl p-6 text-white mb-8 relative overflow-hidden shadow-soft group cursor-pointer active:scale-[0.98] transition-all">
             <div className="relative z-10">
               <span className="bg-primary text-white text-[10px] font-bold px-2 py-1 rounded mb-2 inline-block shadow-sm">New In</span>
               <h3 className="font-serif font-bold text-2xl mb-2">Merch Sostenibile</h3>

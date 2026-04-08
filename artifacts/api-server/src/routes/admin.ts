@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { db, usersTable, dishesTable, menuCategoriesTable, eventsTable, productsTable, productCategoriesTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { db, usersTable, dishesTable, menuCategoriesTable, eventsTable, eventRegistrationsTable, productsTable, productCategoriesTable, ordersTable, orderItemsTable, shopOrdersTable, shopOrderItemsTable, reservationsTable } from "@workspace/db";
+import { eq, desc, sql } from "drizzle-orm";
 import { getUserIdFromRequest } from "./auth";
 
 const router = Router();
@@ -18,6 +18,44 @@ router.get("/check", async (req, res): Promise<void> => {
   if (!userId) { res.json({ isAdmin: false }); return; }
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
   res.json({ isAdmin: user?.isAdmin ?? false });
+});
+
+router.get("/stats", async (req, res): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const [dishCount] = await db.select({ count: sql<number>`count(*)` }).from(dishesTable);
+  const [eventCount] = await db.select({ count: sql<number>`count(*)` }).from(eventsTable);
+  const [productCount] = await db.select({ count: sql<number>`count(*)` }).from(productsTable);
+  const [userCount] = await db.select({ count: sql<number>`count(*)` }).from(usersTable);
+  const [orderCount] = await db.select({ count: sql<number>`count(*)` }).from(ordersTable);
+  const [shopOrderCount] = await db.select({ count: sql<number>`count(*)` }).from(shopOrdersTable);
+  const [reservationCount] = await db.select({ count: sql<number>`count(*)` }).from(reservationsTable);
+  const [registrationCount] = await db.select({ count: sql<number>`count(*)` }).from(eventRegistrationsTable);
+
+  const pendingOrders = await db.select({ count: sql<number>`count(*)` }).from(ordersTable).where(
+    sql`${ordersTable.status} IN ('received', 'preparing')`
+  );
+  const pendingShopOrders = await db.select({ count: sql<number>`count(*)` }).from(shopOrdersTable).where(
+    sql`${shopOrdersTable.status} IN ('pending', 'confirmed')`
+  );
+
+  const today = new Date().toISOString().split("T")[0];
+  const [todayReservations] = await db.select({ count: sql<number>`count(*)` }).from(reservationsTable).where(
+    sql`${reservationsTable.date} = ${today} AND ${reservationsTable.status} != 'cancelled'`
+  );
+
+  res.json({
+    dishes: Number(dishCount.count),
+    events: Number(eventCount.count),
+    products: Number(productCount.count),
+    users: Number(userCount.count),
+    orders: Number(orderCount.count),
+    shopOrders: Number(shopOrderCount.count),
+    reservations: Number(reservationCount.count),
+    eventRegistrations: Number(registrationCount.count),
+    pendingOrders: Number(pendingOrders[0].count),
+    pendingShopOrders: Number(pendingShopOrders[0].count),
+    todayReservations: Number(todayReservations.count),
+  });
 });
 
 router.get("/dishes", async (req, res): Promise<void> => {
@@ -71,11 +109,50 @@ router.get("/menu-categories", async (req, res): Promise<void> => {
   res.json(categories);
 });
 
+router.post("/menu-categories", async (req, res): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const { name, slug, icon, sortOrder } = req.body;
+  if (!name || !slug) { res.status(400).json({ error: "Nome e slug obbligatori" }); return; }
+  const [cat] = await db.insert(menuCategoriesTable).values({
+    name, slug, icon: icon || "🍽️", sortOrder: sortOrder || 99,
+  }).returning();
+  res.json(cat);
+});
+
+router.put("/menu-categories/:id", async (req, res): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const id = parseInt(req.params.id);
+  const { name, slug, icon, sortOrder } = req.body;
+  const [cat] = await db.update(menuCategoriesTable).set({
+    name, slug, icon: icon || "🍽️", sortOrder: sortOrder || 99,
+  }).where(eq(menuCategoriesTable.id, id)).returning();
+  if (!cat) { res.status(404).json({ error: "Categoria non trovata" }); return; }
+  res.json(cat);
+});
+
+router.delete("/menu-categories/:id", async (req, res): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const id = parseInt(req.params.id);
+  const dishes = await db.select({ count: sql<number>`count(*)` }).from(dishesTable).where(eq(dishesTable.categoryId, id));
+  if (Number(dishes[0].count) > 0) {
+    res.status(400).json({ error: "Impossibile eliminare: ci sono piatti in questa categoria" }); return;
+  }
+  await db.delete(menuCategoriesTable).where(eq(menuCategoriesTable.id, id));
+  res.json({ success: true });
+});
+
 router.get("/events", async (req, res): Promise<void> => {
   if (!await requireAdmin(req, res)) return;
   const events = await db.select().from(eventsTable);
   events.sort((a, b) => b.date.localeCompare(a.date));
-  res.json(events);
+
+  const enriched = await Promise.all(events.map(async (event) => {
+    const regs = await db.select({ count: sql<number>`count(*)` }).from(eventRegistrationsTable)
+      .where(sql`${eventRegistrationsTable.eventId} = ${event.id} AND ${eventRegistrationsTable.status} = 'confirmed'`);
+    return { ...event, currentParticipants: Number(regs[0].count) };
+  }));
+
+  res.json(enriched);
 });
 
 router.post("/events", async (req, res): Promise<void> => {
@@ -106,6 +183,7 @@ router.put("/events/:id", async (req, res): Promise<void> => {
 router.delete("/events/:id", async (req, res): Promise<void> => {
   if (!await requireAdmin(req, res)) return;
   const id = parseInt(req.params.id);
+  await db.delete(eventRegistrationsTable).where(eq(eventRegistrationsTable.eventId, id));
   await db.delete(eventsTable).where(eq(eventsTable.id, id));
   res.json({ success: true });
 });
@@ -157,6 +235,145 @@ router.get("/product-categories", async (req, res): Promise<void> => {
   if (!await requireAdmin(req, res)) return;
   const categories = await db.select().from(productCategoriesTable);
   res.json(categories);
+});
+
+router.post("/product-categories", async (req, res): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const { name, slug, icon } = req.body;
+  if (!name || !slug) { res.status(400).json({ error: "Nome e slug obbligatori" }); return; }
+  const [cat] = await db.insert(productCategoriesTable).values({
+    name, slug, icon: icon || "📦",
+  }).returning();
+  res.json(cat);
+});
+
+router.put("/product-categories/:id", async (req, res): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const id = parseInt(req.params.id);
+  const { name, slug, icon } = req.body;
+  const [cat] = await db.update(productCategoriesTable).set({
+    name, slug, icon: icon || "📦",
+  }).where(eq(productCategoriesTable.id, id)).returning();
+  if (!cat) { res.status(404).json({ error: "Categoria non trovata" }); return; }
+  res.json(cat);
+});
+
+router.delete("/product-categories/:id", async (req, res): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const id = parseInt(req.params.id);
+  const products = await db.select({ count: sql<number>`count(*)` }).from(productsTable).where(eq(productsTable.categoryId, id));
+  if (Number(products[0].count) > 0) {
+    res.status(400).json({ error: "Impossibile eliminare: ci sono prodotti in questa categoria" }); return;
+  }
+  await db.delete(productCategoriesTable).where(eq(productCategoriesTable.id, id));
+  res.json({ success: true });
+});
+
+router.get("/orders", async (req, res): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const orders = await db.select().from(ordersTable).orderBy(desc(ordersTable.createdAt));
+  const enriched = await Promise.all(orders.map(async (order) => {
+    const [user] = await db.select({ email: usersTable.email, firstName: usersTable.firstName, lastName: usersTable.lastName }).from(usersTable).where(eq(usersTable.id, order.userId)).limit(1);
+    const items = await db.select().from(orderItemsTable).where(eq(orderItemsTable.orderId, order.id));
+    return {
+      ...order,
+      customerEmail: user?.email ?? "",
+      customerName: user ? `${user.firstName} ${user.lastName}`.trim() : "",
+      items,
+      createdAt: order.createdAt?.toISOString?.() ?? order.createdAt,
+    };
+  }));
+  res.json(enriched);
+});
+
+router.put("/orders/:id/status", async (req, res): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const id = parseInt(req.params.id);
+  const { status } = req.body;
+  if (!status) { res.status(400).json({ error: "Stato obbligatorio" }); return; }
+  const [order] = await db.update(ordersTable).set({ status }).where(eq(ordersTable.id, id)).returning();
+  if (!order) { res.status(404).json({ error: "Ordine non trovato" }); return; }
+  res.json(order);
+});
+
+router.get("/shop-orders", async (req, res): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const orders = await db.select().from(shopOrdersTable).orderBy(desc(shopOrdersTable.createdAt));
+  const enriched = await Promise.all(orders.map(async (order) => {
+    const [user] = await db.select({ email: usersTable.email, firstName: usersTable.firstName, lastName: usersTable.lastName }).from(usersTable).where(eq(usersTable.id, order.userId)).limit(1);
+    const items = await db.select().from(shopOrderItemsTable).where(eq(shopOrderItemsTable.shopOrderId, order.id));
+    return {
+      ...order,
+      customerEmail: user?.email ?? "",
+      customerName: user ? `${user.firstName} ${user.lastName}`.trim() : "",
+      items,
+      createdAt: order.createdAt?.toISOString?.() ?? order.createdAt,
+    };
+  }));
+  res.json(enriched);
+});
+
+router.put("/shop-orders/:id/status", async (req, res): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const id = parseInt(req.params.id);
+  const { status, trackingNumber } = req.body;
+  if (!status) { res.status(400).json({ error: "Stato obbligatorio" }); return; }
+  const updateData: any = { status };
+  if (trackingNumber !== undefined) updateData.trackingNumber = trackingNumber;
+  const [order] = await db.update(shopOrdersTable).set(updateData).where(eq(shopOrdersTable.id, id)).returning();
+  if (!order) { res.status(404).json({ error: "Ordine non trovato" }); return; }
+  res.json(order);
+});
+
+router.get("/reservations", async (req, res): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const reservations = await db.select().from(reservationsTable).orderBy(desc(reservationsTable.createdAt));
+  const enriched = await Promise.all(reservations.map(async (r) => {
+    const [user] = await db.select({ email: usersTable.email, firstName: usersTable.firstName, lastName: usersTable.lastName, phone: usersTable.phone }).from(usersTable).where(eq(usersTable.id, r.userId)).limit(1);
+    return {
+      ...r,
+      customerEmail: user?.email ?? "",
+      customerName: user ? `${user.firstName} ${user.lastName}`.trim() : "",
+      customerPhone: user?.phone ?? "",
+      createdAt: r.createdAt?.toISOString?.() ?? r.createdAt,
+    };
+  }));
+  res.json(enriched);
+});
+
+router.put("/reservations/:id/status", async (req, res): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const id = parseInt(req.params.id);
+  const { status } = req.body;
+  if (!status) { res.status(400).json({ error: "Stato obbligatorio" }); return; }
+  const [reservation] = await db.update(reservationsTable).set({ status }).where(eq(reservationsTable.id, id)).returning();
+  if (!reservation) { res.status(404).json({ error: "Prenotazione non trovata" }); return; }
+  res.json(reservation);
+});
+
+router.get("/users", async (req, res): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const users = await db.select({
+    id: usersTable.id,
+    email: usersTable.email,
+    firstName: usersTable.firstName,
+    lastName: usersTable.lastName,
+    phone: usersTable.phone,
+    isAdmin: usersTable.isAdmin,
+    loyaltyPoints: usersTable.loyaltyPoints,
+    loyaltyLevel: usersTable.loyaltyLevel,
+    createdAt: usersTable.createdAt,
+  }).from(usersTable).orderBy(desc(usersTable.createdAt));
+  res.json(users.map(u => ({ ...u, name: `${u.firstName} ${u.lastName}`.trim(), createdAt: u.createdAt?.toISOString?.() ?? u.createdAt })));
+});
+
+router.put("/users/:id/admin", async (req, res): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const id = parseInt(req.params.id);
+  const { isAdmin } = req.body;
+  const [user] = await db.update(usersTable).set({ isAdmin: !!isAdmin }).where(eq(usersTable.id, id)).returning();
+  if (!user) { res.status(404).json({ error: "Utente non trovato" }); return; }
+  res.json({ id: user.id, isAdmin: user.isAdmin });
 });
 
 export { router as adminRouter };

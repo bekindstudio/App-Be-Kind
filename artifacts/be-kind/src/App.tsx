@@ -32,6 +32,11 @@ import AdminEvents from "@/pages/admin/events-list";
 import AdminEventForm from "@/pages/admin/event-form";
 import AdminProducts from "@/pages/admin/products-list";
 import AdminProductForm from "@/pages/admin/product-form";
+import AdminOrders from "@/pages/admin/orders";
+import AdminShopOrders from "@/pages/admin/shop-orders";
+import AdminReservationsPage from "@/pages/admin/reservations";
+import AdminUsersList from "@/pages/admin/users-list";
+import AdminCategories from "@/pages/admin/categories";
 
 const queryClient = new QueryClient();
 
@@ -65,6 +70,11 @@ function Router() {
         <Route path="/admin/eventi/:id" component={AdminEventForm} />
         <Route path="/admin/prodotti" component={AdminProducts} />
         <Route path="/admin/prodotti/:id" component={AdminProductForm} />
+        <Route path="/admin/ordini" component={AdminOrders} />
+        <Route path="/admin/ordini-bottega" component={AdminShopOrders} />
+        <Route path="/admin/prenotazioni" component={AdminReservationsPage} />
+        <Route path="/admin/utenti" component={AdminUsersList} />
+        <Route path="/admin/categorie" component={AdminCategories} />
         <Route component={NotFound} />
       </Switch>
     </MobileLayout>

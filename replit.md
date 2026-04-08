@@ -64,10 +64,19 @@
 ## Admin Panel
 
 - **Access**: Admin users (is_admin=true in users table) see "Pannello Admin" link on profile page
-- **Routes**: `/admin`, `/admin/piatti`, `/admin/piatti/:id`, `/admin/eventi`, `/admin/eventi/:id`, `/admin/prodotti`, `/admin/prodotti/:id`
-- **Backend**: `POST/PUT/DELETE /api/admin/dishes|events|products` with admin middleware (`requireAdmin`)
-- **Features**: Full CRUD for dishes (menu), events, and products (shop). Category dropdowns, image URL preview, toggle switches for visibility/featured/new arrival.
-- **Auth gate**: All admin API routes verify `isAdmin` flag on authenticated user. Frontend shows "Accesso Riservato" for non-admin users.
+- **Dashboard**: Live stats (pending orders, today reservations, counts), organized by Contenuti / Operazioni / Persone
+- **Content Management**:
+  - Piatti: CRUD at `/admin/piatti`, `/admin/piatti/:id` (new/edit)
+  - Eventi: CRUD at `/admin/eventi`, `/admin/eventi/:id`
+  - Prodotti: CRUD at `/admin/prodotti`, `/admin/prodotti/:id`
+  - Categorie: Menu & product categories at `/admin/categorie` (inline create/edit/delete)
+- **Operations**:
+  - Ordini Ristorante: `/admin/ordini` — view, filter (attivi/completati/annullati), change status
+  - Ordini Bottega: `/admin/ordini-bottega` — same + tracking
+  - Prenotazioni: `/admin/prenotazioni` — filter (oggi/prossime/passate), confirm/complete/cancel
+- **Users**: `/admin/utenti` — search, view loyalty info, toggle admin privileges
+- **Backend**: All at `/api/admin/*` with `requireAdmin` middleware
+- **Auth gate**: All admin API routes verify `isAdmin` flag. Frontend shows "Accesso Riservato" for non-admin users.
 
 ## Key Files
 

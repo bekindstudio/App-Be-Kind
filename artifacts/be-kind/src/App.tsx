@@ -40,6 +40,7 @@ import AdminCategories from "@/pages/admin/categories";
 import AdminScanner from "@/pages/admin/scanner";
 import AdminNotifications from "@/pages/admin/notifications";
 import Notifications from "@/pages/notifications";
+import ShopCheckout from "@/pages/shop-checkout";
 import PrivacyPolicy from "@/pages/privacy-policy";
 import Terms from "@/pages/terms";
 import { CookieConsent } from "@/components/cookie-consent";
@@ -61,6 +62,7 @@ function Router() {
         <Route path="/orders/:id" component={OrderDetail} />
         <Route path="/shop" component={Shop} />
         <Route path="/shop/cart" component={ShopCart} />
+        <Route path="/shop/checkout" component={ShopCheckout} />
         <Route path="/shop/:id" component={ProductDetail} />
         <Route path="/events" component={Events} />
         <Route path="/events/:id" component={EventDetail} />

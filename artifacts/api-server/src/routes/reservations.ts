@@ -3,6 +3,7 @@ import { db, reservationsTable, usersTable, loyaltyTransactionsTable } from "@wo
 import { eq, and } from "drizzle-orm";
 import { getUserIdFromRequest, computeLoyaltyLevel } from "./auth";
 import { CreateReservationBody, UpdateReservationBody } from "@workspace/api-zod";
+import { notifyAdmins } from "../lib/admin-notify";
 import {
   getReservationLocationId,
   getTimeSlots,
@@ -234,6 +235,13 @@ router.post("/", async (req, res): Promise<void> => {
             reason: `Prenotazione tavolo - ${date}`,
           });
 
+          const wixUserName = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.email;
+          notifyAdmins(
+            `Nuova prenotazione tavolo`,
+            `${wixUserName} ha prenotato per ${guests} persone il ${date} alle ${time}${notes ? ` — Note: ${notes}` : ""}`,
+            "reservation"
+          ).catch(err => console.error("Admin notify error:", err));
+
           res.status(201).json({
             ...formatReservation(localReservation),
             wixReservationId: finalReservation.id,
@@ -277,6 +285,16 @@ router.post("/", async (req, res): Promise<void> => {
       type: "earned",
       reason: `Prenotazione tavolo - ${date}`,
     });
+  }
+
+  const resUser = user;
+  if (resUser) {
+    const localUserName = `${resUser.firstName || ""} ${resUser.lastName || ""}`.trim() || resUser.email;
+    notifyAdmins(
+      `Nuova prenotazione tavolo`,
+      `${localUserName} ha prenotato per ${guests} persone il ${date} alle ${time}${notes ? ` — Note: ${notes}` : ""}`,
+      "reservation"
+    ).catch(err => console.error("Admin notify error:", err));
   }
 
   res.status(201).json(formatReservation(reservation));

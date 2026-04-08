@@ -77,9 +77,11 @@ export default function ShopCart() {
             </div>
           </div>
 
-          <Button className="w-full h-14 rounded-xl text-lg font-medium shadow-lg hover-elevate bg-secondary text-secondary-foreground hover:bg-secondary/90">
-            Procedi al Pagamento
-          </Button>
+          <Link href="/shop/checkout">
+            <Button className="w-full h-14 rounded-xl text-lg font-medium shadow-lg hover-elevate bg-secondary text-secondary-foreground hover:bg-secondary/90">
+              Procedi al Pagamento
+            </Button>
+          </Link>
         </div>
       )}
     </PageTransition>

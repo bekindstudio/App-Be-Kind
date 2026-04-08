@@ -23,8 +23,8 @@
 
 1. **Digital Menu** — Categories, allergens, dietary filters
 2. **Table Reservations** — Calendar + time slots, Wix Table Reservations integration (fallback to local DB)
-3. **Delivery/Takeaway** — Cart, ordering flow
-4. **E-Commerce Shop** — Products, shop cart
+3. **Delivery/Takeaway** — Cart, ordering flow, zone-restricted delivery (Cattolica & Gabicce Mare only)
+4. **E-Commerce Shop** — Products, shop cart, full checkout with Stripe/cash payment
 5. **Events & Workshops** — Event catalog + registration, auto-synced from Wix Events with ticketing links
 6. **Loyalty** — Points system (Seed/Sprout/Bloom/Tree tiers) + stamp cards
 7. **Profile** — User dashboard, preferences, order history
@@ -107,6 +107,28 @@
 - `artifacts/be-kind/src/hooks/use-admin.ts` — Admin hooks (queries + mutations)
 - `artifacts/be-kind/src/pages/new-reservation.tsx` — New reservation form
 - `artifacts/be-kind/src/pages/reservations.tsx` — Reservation list
+
+## Delivery Zone Restriction
+
+- **Allowed zones**: Cattolica (RN) and Gabicce Mare (PU) only
+- **Frontend**: `checkout.tsx` has a mandatory city dropdown selector (not free text) for delivery zone
+- **Backend**: `payments.ts` validates delivery address server-side via `isDeliveryZoneValid()` — rejects addresses not containing "cattolica", "gabicce mare", or "gabicce"
+- **Both routes validated**: `/create-checkout-session` and `/confirm-order`
+
+## Shop (Bottega) Checkout
+
+- **Page**: `shop-checkout.tsx` at `/shop/checkout` — full checkout with shipping address, payment method (card/cash), GDPR/terms consent, invoice option
+- **Cash flow**: Calls `POST /api/shop/orders` directly to create order
+- **Card flow**: Creates Stripe session via `POST /api/payments/create-shop-checkout-session`, then redirects; on return calls `POST /api/payments/confirm-shop-order` to finalize order
+- **Shipping address**: Saved to `localStorage` before Stripe redirect, restored on return
+- **Shipping cost**: €5.90 flat, free above €50
+
+## Admin Notifications
+
+- **Utility**: `artifacts/api-server/src/lib/admin-notify.ts` — `notifyAdmins(title, body, type)` sends in-app notifications to all admin users
+- **Triggers**: New restaurant orders (`payments.ts`), new shop orders (`shopOrders.ts`, `payments.ts`), new reservations (`reservations.ts`)
+- **Notification types**: "order" for orders, "reservation" for reservations
+- **Delivery**: Fire-and-forget (`.catch()`) to not block request responses
 
 ## Delivery Tracking System
 

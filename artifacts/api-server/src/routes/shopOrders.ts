@@ -3,6 +3,7 @@ import { db, shopOrdersTable, shopOrderItemsTable, shopCartItemsTable, usersTabl
 import { eq, desc } from "drizzle-orm";
 import { getUserIdFromRequest, computeLoyaltyLevel } from "./auth";
 import { CreateShopOrderBody } from "@workspace/api-zod";
+import { notifyAdmins } from "../lib/admin-notify";
 
 const router = Router();
 
@@ -106,6 +107,13 @@ router.post("/", async (req, res): Promise<void> => {
       reason: `Acquisto shop #${order.orderNumber}`,
     });
   }
+
+  const userName = user ? `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.email : "Cliente";
+  notifyAdmins(
+    `Nuovo ordine Bottega #${order.orderNumber}`,
+    `${userName} ha ordinato ${cartItems.length} prodott${cartItems.length === 1 ? "o" : "i"} per €${total.toFixed(2)} — Spedizione: ${shippingAddress}`,
+    "order"
+  ).catch(err => console.error("Admin notify error:", err));
 
   res.status(201).json(await formatShopOrder(order));
 });

@@ -20,6 +20,7 @@ const IVA_RATE = 0.10;
 export default function Checkout() {
   const [type, setType] = useState<"delivery" | "takeaway">("delivery");
   const [address, setAddress] = useState("");
+  const [deliveryCity, setDeliveryCity] = useState("");
   const [time, setTime] = useState("");
   const [notes, setNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"card" | "cash">("card");
@@ -44,6 +45,10 @@ export default function Checkout() {
   const handlePlaceOrder = async () => {
     if (type === "delivery" && !address) {
       toast({ title: "Indirizzo obbligatorio", variant: "destructive" });
+      return;
+    }
+    if (type === "delivery" && !deliveryCity) {
+      toast({ title: "Zona di consegna obbligatoria", description: "Consegniamo solo a Cattolica e Gabicce Mare.", variant: "destructive" });
       return;
     }
     if (type === "takeaway" && !time) {
@@ -72,7 +77,7 @@ export default function Checkout() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             type,
-            deliveryAddress: type === "delivery" ? address : undefined,
+            deliveryAddress: type === "delivery" ? `${address}, ${deliveryCity}` : undefined,
             pickupTime: type === "takeaway" ? time : undefined,
             notes: notes || undefined,
             codiceFiscale: wantsFattura ? codiceFiscale : undefined,
@@ -89,7 +94,7 @@ export default function Checkout() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             type,
-            deliveryAddress: type === "delivery" ? address : undefined,
+            deliveryAddress: type === "delivery" ? `${address}, ${deliveryCity}` : undefined,
             pickupTime: type === "takeaway" ? time : undefined,
             notes: notes || undefined,
             codiceFiscale: wantsFattura ? codiceFiscale : undefined,
@@ -179,12 +184,29 @@ export default function Checkout() {
               Indirizzo di Consegna
             </h3>
             <Input
-              placeholder="Via Roma 123, 47841 Cattolica (RN)"
+              placeholder="Via Roma 123"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               className="h-12 bg-muted/30 rounded-xl border-border/50"
             />
-            <p className="text-[11px] text-muted-foreground mt-2">Consegna stimata: ~40 minuti</p>
+            <select
+              value={deliveryCity}
+              onChange={(e) => setDeliveryCity(e.target.value)}
+              className="w-full h-12 bg-muted/30 rounded-xl border border-border/50 px-3 text-sm mt-3 outline-none focus:border-primary/30 transition-all"
+            >
+              <option value="">Seleziona zona di consegna...</option>
+              <option value="Cattolica">Cattolica (RN)</option>
+              <option value="Gabicce Mare">Gabicce Mare (PU)</option>
+            </select>
+            {deliveryCity && (
+              <div className="mt-2 flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
+                <p className="text-[11px] text-green-700">Zona di consegna valida — Consegna stimata: ~30-40 minuti</p>
+              </div>
+            )}
+            {!deliveryCity && address && (
+              <p className="text-[11px] text-amber-600 mt-2">Seleziona la zona di consegna (solo Cattolica e Gabicce Mare)</p>
+            )}
           </div>
         ) : (
           <div className="bg-card rounded-[24px] p-5 border border-border/30 shadow-sm">

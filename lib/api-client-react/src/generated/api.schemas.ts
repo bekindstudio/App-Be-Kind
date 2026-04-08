@@ -131,6 +131,22 @@ export const OrderStatus = {
   cancelled: "cancelled",
 } as const;
 
+export interface RiderInfo {
+  name: string;
+  phone: string;
+  vehicle: "scooter" | "bici" | "auto";
+}
+
+export interface DeliveryTracking {
+  rider: RiderInfo;
+  riderStatus: "assigned" | "picking_up" | "on_the_way" | "nearby" | "arrived";
+  progress: number;
+  etaMinutes: number;
+  riderPosition: { lat: number; lng: number };
+  restaurantPosition: { lat: number; lng: number };
+  deliveryPosition: { lat: number; lng: number };
+}
+
 export interface Order {
   id: number;
   orderNumber: string;
@@ -147,6 +163,7 @@ export interface Order {
   discountCode?: string | null;
   pointsEarned: number;
   createdAt: string;
+  tracking?: DeliveryTracking | null;
 }
 
 export type CreateOrderBodyType =

@@ -108,6 +108,17 @@
 - `artifacts/be-kind/src/pages/new-reservation.tsx` — New reservation form
 - `artifacts/be-kind/src/pages/reservations.tsx` — Reservation list
 
+## Delivery Tracking System
+
+- **Rider simulation**: Backend generates deterministic rider info (name, phone, vehicle) based on order ID
+- **Tracking data**: Included in `GET /api/orders/:id` response as `tracking` field for delivery orders in `ready`/`delivering`/`delivered` status
+- **Rider statuses**: `assigned` → `picking_up` → `on_the_way` → `nearby` → `arrived`
+- **Progress**: Simulated based on elapsed time since order creation vs estimated delivery time
+- **Auto-refresh**: Frontend polls every 5 seconds for active orders, stops for delivered/cancelled
+- **Types**: `DeliveryTracking`, `RiderInfo` exported from `@workspace/api-client-react`
+- **UI components**: ETACountdown (gradient timer card), DeliveryMap (visual progress bar with animated rider icon), RiderCard (rider info + phone call link)
+- **Orders list**: Split into active/past sections with progress bars for delivering orders
+
 ## QR Code Loyalty System
 
 - **User QR Code**: Each user gets a unique QR token (format: `BK-XXXXXXXXXXXX`) stored in `users.qr_token`, generated on first request to `GET /api/loyalty/qr-data`

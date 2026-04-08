@@ -13,9 +13,82 @@ function generateOrderNumber(): string {
   return `BK${Date.now().toString().slice(-8)}`;
 }
 
-async function formatOrder(order: any) {
-  const items = await db.select().from(orderItemsTable).where(eq(orderItemsTable.orderId, order.id));
+const RIDER_NAMES = ["Marco R.", "Luca B.", "Alessio F.", "Davide M.", "Simone G."];
+const RIDER_VEHICLES = ["scooter", "bici", "auto"];
+
+function getSimulatedRider(orderId: number) {
+  const idx = orderId % RIDER_NAMES.length;
   return {
+    name: RIDER_NAMES[idx],
+    phone: `+39 333 ${String(1000000 + (orderId * 7919) % 9000000).slice(0, 7)}`,
+    vehicle: RIDER_VEHICLES[orderId % RIDER_VEHICLES.length] as "scooter" | "bici" | "auto",
+  };
+}
+
+function getDeliveryTracking(order: any) {
+  if (order.type !== "delivery") return null;
+
+  const createdAt = new Date(order.createdAt).getTime();
+  const elapsedMin = (Date.now() - createdAt) / 1000 / 60;
+  const estimatedMin = order.estimatedDeliveryTime || 40;
+
+  const rider = getSimulatedRider(order.id);
+
+  let riderStatus: "assigned" | "picking_up" | "on_the_way" | "nearby" | "arrived" = "assigned";
+  let progress = 0;
+  let etaMinutes = estimatedMin;
+
+  if (order.status === "delivering") {
+    const deliveryStartMin = 15;
+    const deliveryElapsed = Math.max(0, elapsedMin - deliveryStartMin);
+    const deliveryDuration = estimatedMin - deliveryStartMin;
+    progress = Math.min(100, (deliveryElapsed / deliveryDuration) * 100);
+
+    if (progress < 10) {
+      riderStatus = "picking_up";
+    } else if (progress < 75) {
+      riderStatus = "on_the_way";
+    } else if (progress < 95) {
+      riderStatus = "nearby";
+    } else {
+      riderStatus = "arrived";
+    }
+
+    etaMinutes = Math.max(1, Math.round(estimatedMin - elapsedMin));
+  } else if (order.status === "delivered") {
+    progress = 100;
+    riderStatus = "arrived";
+    etaMinutes = 0;
+  } else if (order.status === "ready") {
+    riderStatus = "assigned";
+    progress = 0;
+    etaMinutes = Math.max(1, Math.round(estimatedMin - elapsedMin));
+  } else {
+    return null;
+  }
+
+  const restaurantLat = 43.9612;
+  const restaurantLng = 12.7382;
+  const deliveryLat = restaurantLat + 0.012;
+  const deliveryLng = restaurantLng + 0.008;
+  const p = progress / 100;
+  const riderLat = restaurantLat + (deliveryLat - restaurantLat) * p;
+  const riderLng = restaurantLng + (deliveryLng - restaurantLng) * p;
+
+  return {
+    rider,
+    riderStatus,
+    progress: Math.round(progress),
+    etaMinutes,
+    riderPosition: { lat: riderLat, lng: riderLng },
+    restaurantPosition: { lat: restaurantLat, lng: restaurantLng },
+    deliveryPosition: { lat: deliveryLat, lng: deliveryLng },
+  };
+}
+
+async function formatOrder(order: any, includeTracking = false) {
+  const items = await db.select().from(orderItemsTable).where(eq(orderItemsTable.orderId, order.id));
+  const result: any = {
     id: order.id,
     orderNumber: order.orderNumber,
     type: order.type,
@@ -40,6 +113,12 @@ async function formatOrder(order: any) {
     pointsEarned: order.pointsEarned,
     createdAt: order.createdAt?.toISOString?.() ?? order.createdAt,
   };
+
+  if (includeTracking) {
+    result.tracking = getDeliveryTracking(order);
+  }
+
+  return result;
 }
 
 router.get("/", async (req, res): Promise<void> => {
@@ -50,7 +129,7 @@ router.get("/", async (req, res): Promise<void> => {
     .where(eq(ordersTable.userId, userId))
     .orderBy(desc(ordersTable.createdAt));
 
-  const formatted = await Promise.all(orders.map(formatOrder));
+  const formatted = await Promise.all(orders.map(o => formatOrder(o)));
   res.json(formatted);
 });
 
@@ -98,10 +177,8 @@ router.post("/", async (req, res): Promise<void> => {
     })
   ));
 
-  // Clear cart
   await db.delete(cartItemsTable).where(eq(cartItemsTable.userId, userId));
 
-  // Award loyalty points
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
   if (user) {
     const newPoints = user.loyaltyPoints + pointsEarned;
@@ -115,7 +192,7 @@ router.post("/", async (req, res): Promise<void> => {
     });
   }
 
-  res.status(201).json(await formatOrder(order));
+  res.status(201).json(await formatOrder(order, true));
 });
 
 router.get("/:id", async (req, res): Promise<void> => {
@@ -129,9 +206,8 @@ router.get("/:id", async (req, res): Promise<void> => {
 
   if (!order || order.userId !== userId) { res.status(404).json({ error: "Order not found" }); return; }
 
-  // Simulate status progression for demo
   const createdAt = new Date(order.createdAt).getTime();
-  const elapsed = (Date.now() - createdAt) / 1000 / 60; // minutes
+  const elapsed = (Date.now() - createdAt) / 1000 / 60;
   let status = order.status;
   if (order.status === "received" && elapsed > 2) status = "preparing";
   if (order.status !== "delivered" && order.status !== "cancelled" && elapsed > 5) status = "preparing";
@@ -143,7 +219,7 @@ router.get("/:id", async (req, res): Promise<void> => {
     await db.update(ordersTable).set({ status }).where(eq(ordersTable.id, orderId));
   }
 
-  res.json(await formatOrder({ ...order, status }));
+  res.json(await formatOrder({ ...order, status }, true));
 });
 
 router.post("/:id/reorder", async (req, res): Promise<void> => {
@@ -156,7 +232,6 @@ router.post("/:id/reorder", async (req, res): Promise<void> => {
 
   const originalItems = await db.select().from(orderItemsTable).where(eq(orderItemsTable.orderId, orderId));
 
-  // Clear current cart and add original items
   await db.delete(cartItemsTable).where(eq(cartItemsTable.userId, userId));
 
   for (const item of originalItems) {
@@ -170,7 +245,6 @@ router.post("/:id/reorder", async (req, res): Promise<void> => {
     });
   }
 
-  // Create a new order immediately
   const subtotal = originalItems.reduce((sum, i) => sum + i.subtotal, 0);
   const deliveryCost = originalOrder.type === "delivery" ? (subtotal >= 25 ? 0 : 2.5) : 0;
   const total = subtotal + deliveryCost;
@@ -203,7 +277,6 @@ router.post("/:id/reorder", async (req, res): Promise<void> => {
 
   await db.delete(cartItemsTable).where(eq(cartItemsTable.userId, userId));
 
-  // Award points
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
   if (user) {
     const newPoints = user.loyaltyPoints + pointsEarned;
@@ -217,7 +290,7 @@ router.post("/:id/reorder", async (req, res): Promise<void> => {
     });
   }
 
-  res.json(await formatOrder(newOrder));
+  res.json(await formatOrder(newOrder, true));
 });
 
 export { router as ordersRouter };

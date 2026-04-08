@@ -102,13 +102,73 @@ router.post("/login", async (req, res): Promise<void> => {
   const { email, password } = parsed.data;
 
   const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email)).limit(1);
-  if (!user || user.passwordHash !== hashPassword(password)) {
+  if (!user || !user.passwordHash || user.passwordHash !== hashPassword(password)) {
     res.status(401).json({ error: "Invalid credentials" });
     return;
   }
 
   const token = makeToken(user.id);
   res.json({ token, user: formatUser(user) });
+});
+
+router.post("/google", async (req, res): Promise<void> => {
+  const { credential } = req.body;
+  if (!credential) {
+    res.status(400).json({ error: "Missing Google credential" });
+    return;
+  }
+
+  try {
+    const verifyRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
+    if (!verifyRes.ok) {
+      res.status(401).json({ error: "Invalid Google token" });
+      return;
+    }
+    const googleUser = await verifyRes.json() as any;
+    const { sub: googleId, email, given_name, family_name, picture } = googleUser;
+
+    if (!email) {
+      res.status(400).json({ error: "Google account has no email" });
+      return;
+    }
+
+    let [user] = await db.select().from(usersTable).where(eq(usersTable.googleId, googleId)).limit(1);
+
+    if (!user) {
+      [user] = await db.select().from(usersTable).where(eq(usersTable.email, email)).limit(1);
+      if (user) {
+        await db.update(usersTable).set({ googleId, avatarUrl: picture || user.avatarUrl }).where(eq(usersTable.id, user.id));
+        user = { ...user, googleId, avatarUrl: picture || user.avatarUrl };
+      }
+    }
+
+    if (!user) {
+      [user] = await db.insert(usersTable).values({
+        email,
+        googleId,
+        firstName: given_name || "Utente",
+        lastName: family_name || "",
+        phone: "",
+        avatarUrl: picture || null,
+        acceptedTerms: true,
+        loyaltyPoints: 50,
+        loyaltyLevel: "Bronze",
+      }).returning();
+
+      await db.insert(loyaltyTransactionsTable).values({
+        userId: user.id,
+        points: 50,
+        type: "earned",
+        reason: "Bonus benvenuto - primo accesso con Google",
+      });
+    }
+
+    const token = makeToken(user.id);
+    res.json({ token, user: formatUser(user) });
+  } catch (err: any) {
+    console.error("[Google Auth] Error:", err.message);
+    res.status(500).json({ error: "Google authentication failed" });
+  }
 });
 
 router.post("/logout", async (_req, res): Promise<void> => {

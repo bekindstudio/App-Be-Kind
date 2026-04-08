@@ -19,9 +19,11 @@ const router = Router();
 
 const WIX_ENABLED = !!(process.env.WIX_API_KEY && process.env.WIX_ACCOUNT_ID);
 
+const BREAKFAST_BRUNCH_SLOTS = ["08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30"];
 const LUNCH_SLOTS = ["12:00", "12:30", "13:00", "13:30", "14:00", "14:30"];
-const DINNER_SLOTS = ["19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30"];
-const ALL_SLOTS = [...LUNCH_SLOTS, ...DINNER_SLOTS];
+const DINNER_SLOTS = ["18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30"];
+const ALL_SLOTS = [...BREAKFAST_BRUNCH_SLOTS, ...LUNCH_SLOTS, ...DINNER_SLOTS];
+const MAX_COVERS_PER_SLOT = 40;
 
 function formatReservation(r: any) {
   return {
@@ -106,7 +108,12 @@ router.get("/availability", async (req, res): Promise<void> => {
     .where(and(eq(reservationsTable.date, date), eq(reservationsTable.status, "confirmed")));
 
   const availableSlots = ALL_SLOTS.filter(
-    (slot) => reservedSlots.filter((r) => r.time === slot).length < 4
+    (slot) => {
+      const bookedGuests = reservedSlots
+        .filter((r) => r.time === slot)
+        .reduce((sum, r) => sum + (r.guests || 1), 0);
+      return bookedGuests < MAX_COVERS_PER_SLOT;
+    }
   );
 
   res.json({ date, availableSlots, closedDay: false, source: "local" });

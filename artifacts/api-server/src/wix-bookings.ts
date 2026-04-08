@@ -131,11 +131,12 @@ export async function getTimeSlots(
   date: string,
   partySize: number
 ): Promise<any> {
+  const [year, month, day] = date.split("-").map(Number);
   return siteFetch("/table-reservations/v1/time-slots", {
     method: "POST",
     body: JSON.stringify({
       reservationLocationId,
-      date,
+      date: { year, month, day },
       partySize,
     }),
   });

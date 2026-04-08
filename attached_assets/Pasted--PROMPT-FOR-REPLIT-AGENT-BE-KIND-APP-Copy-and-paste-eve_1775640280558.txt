@@ -1,0 +1,506 @@
+# PROMPT FOR REPLIT AGENT — "BE KIND" APP
+
+Copy and paste everything below into Replit Agent.
+
+---
+
+## PROMPT STARTS HERE
+
+---
+
+Build a **mobile-first web application** called **"Be Kind"** using **React + TypeScript + Tailwind CSS** with a **Node.js/Express** backend and **PostgreSQL** database (or **Supabase** for faster setup). The app must be a PWA (installable on mobile).
+
+**IMPORTANT NOTE:** I will provide screenshots separately for the exact UI design and colors. Do not invent the UI — focus on the functional structure, pages, logic and content. Use a clean minimal placeholder design that we will adapt later.
+
+---
+
+## BRAND IDENTITY & CONTEXT
+
+This app is for the real brand **Be Kind** (website: www.bekindcommunity.it).
+
+- **Brand name:** Be Kind
+- **Tagline:** "Spread Kindness with us!"
+- **Vibe:** Warm, organic, nature-inspired, community-driven, sustainable, mindful living. Think cozy plant-filled brunch café that hosts creative workshops.
+- **Color palette:** Earthy tones — warm greens, soft beiges/cream, terracotta/burnt orange accents, natural wood tones, off-white backgrounds. NO cold corporate blues or grays.
+- **Owner:** Michael Balleroni | P. IVA: 02871720419 | Via C. Menotti, 184 Pesaro, 61122
+- **Location:** Be Kind | Cattolica (restaurant/café & event space)
+- **Email:** bekindgroup.italia@gmail.com
+- **Instagram:** @bekind_italia
+- **Story:** "Ispirati dai nostri viaggi nel mondo, abbiamo portato dentro Be Kind tutto ciò che abbiamo scoperto, imparato e amato lungo il cammino. Per tutti, ovunque."
+- **App language:** Italian
+- **Currency:** EUR (€)
+
+---
+
+## 1. GENERAL ARCHITECTURE
+
+The app has **8 macro-modules**:
+1. Authentication & User Profile
+2. Restaurant & Digital Menu
+3. Table Reservation
+4. Delivery & Takeaway Orders (with real-time tracking)
+5. E-Commerce (Product Shop)
+6. Events & Workshops
+7. **Loyalty Card System with STAMPS + POINTS** (key feature)
+8. Admin Panel
+
+Recommended stack:
+- **Frontend:** React 18+ with TypeScript, Tailwind CSS, React Router
+- **Backend:** Node.js with Express (or Next.js API Routes)
+- **Database:** PostgreSQL with Prisma ORM (or Supabase)
+- **Auth:** JWT with refresh token (or Supabase Auth)
+- **Payments:** Stripe (checkout integration)
+- **Maps:** Leaflet or Google Maps API (for rider tracking)
+- **Real-time:** WebSocket or Supabase Realtime (for order tracking)
+- **Image storage:** Cloudinary or Supabase Storage
+
+---
+
+## 2. AUTHENTICATION & USER PROFILE MODULE
+
+### Registration
+- Form fields: first name, last name, email, password, phone number (required)
+- Optional fields: date of birth, profile photo, default delivery address
+- Social login: Google, Apple ID
+- Email verification with OTP code
+- Mandatory GDPR consent + Terms & Conditions checkbox
+
+### Login
+- Email + password
+- Social login (Google, Apple)
+- Biometric (preparation for future native app)
+- "Forgot password" with email reset
+- Persistent session with JWT + refresh token
+
+### User Profile (Dashboard)
+The profile page must show:
+- Current loyalty points balance, stamps overview, and tier level (Seed/Sprout/Bloom/Tree)
+- Progress bar toward next tier
+- Order history (delivery + e-commerce) with "Reorder" option
+- Active and past reservations
+- Events/workshops the user is registered for
+- Manage delivery addresses (multiple, with favorite)
+- Manage saved payment methods
+- Allergen & dietary preferences (vegan, vegetarian, gluten free, etc.)
+- Notification settings (toggles per category: orders, promos, events, loyalty)
+- "My Reviews" section
+
+---
+
+## 3. RESTAURANT & DIGITAL MENU MODULE
+
+### Menu Page
+- Menu organized by **navigable categories** with horizontal tabs/scroll: Colazione (Breakfast), Brunch, Pranzo (Lunch), Aperitivo, Cena (Dinner), Dolci (Desserts), Bevande (Drinks), Menu Speciali
+- **Each dish shows:**
+  - High-resolution photo
+  - Dish name
+  - Detailed ingredient description
+  - Price
+  - Allergen badges (icons: gluten, lactose, nuts, etc.)
+  - Dietary labels (tags: Vegan, Vegetarian, Gluten Free)
+  - Average star rating
+- Quick filters: by allergens and dietary preferences
+- Text search bar
+- "Dishes of the Day" / "Chef's Specials" section highlighted at top
+
+### Dish Detail Page
+- Photo gallery (carousel/swipeable)
+- Extended description
+- Full ingredient list
+- Nutritional info (if available)
+- Average rating + number of reviews
+- Reviews section (users can leave stars + text)
+- "Add to Cart" button with quantity selector and customizations (e.g. "no onion", "double portion")
+- "Add to Favorites" button (heart icon)
+
+### Sample Menu Data
+Create at least **18 sample dishes** distributed across categories with realistic data:
+
+**Colazione (Breakfast):**
+- Pancakes Be Kind — Stack of fluffy pancakes with maple syrup, fresh berries and whipped cream — €9.50
+- Açaí Bowl — Açaí blended base with granola, banana, coconut flakes and honey — €10.00
+- Avocado Toast — Sourdough bread with smashed avocado, poached eggs, chili flakes and seeds — €11.00
+
+**Brunch:**
+- Eggs Benedict Be Kind — Poached eggs on brioche with smoked salmon, hollandaise and mixed greens — €13.00
+- French Toast Deluxe — Brioche French toast with Nutella, strawberries, banana and powdered sugar — €12.00
+- Buddha Bowl — Brown rice, avocado, edamame, pickled carrots, hummus and tahini dressing — €14.00
+
+**Primi (Lunch/Dinner):**
+- Paccheri alla Norma — Paccheri with eggplant, San Marzano tomato, salted ricotta and basil — €13.00
+- Risotto ai Funghi Porcini — Carnaroli rice with fresh porcini mushrooms and 24-month parmesan — €15.00
+- Spaghetti allo Scoglio — Spaghetti with mixed seafood, cherry tomatoes and parsley — €16.00
+
+**Secondi:**
+- Filetto di Branzino — Oven-baked sea bass with crispy potatoes and seasonal vegetables — €18.00
+- Tagliata di Manzo — Grilled beef sirloin with arugula, parmesan flakes and balsamic reduction — €22.00
+- Burger Be Kind — Artisan 180g beef burger with cheddar, crispy bacon, special sauce and fries — €15.00
+
+**Dolci (Desserts):**
+- Tiramisù Classico — Our homemade tiramisù with fresh mascarpone and bitter cocoa — €7.50
+- Cheesecake ai Frutti di Bosco — Crunchy base with cheesecake cream and berry coulis — €8.00
+
+**Bevande (Drinks):**
+- Acqua Naturale/Frizzante 75cl — €2.50
+- Coca-Cola / Coca-Cola Zero 33cl — €3.00
+- Fresh Juice (Orange / Apple / Carrot-Ginger) — €5.00
+- Calice di Vino della Casa (Rosso/Bianco) — €5.00
+
+All dishes must have the relevant allergen and dietary tags.
+
+---
+
+## 4. TABLE RESERVATION MODULE
+
+### Reservation Flow
+1. **Select date:** visual calendar highlighting available/unavailable days
+2. **Select time:** 30-minute slots from available options (configurable from backend)
+3. **Number of guests:** selector from 1 to 12 (max configurable)
+4. **Notes:** text field for special requests (high chair, allergies, special occasion)
+5. **Summary:** screen with all details + "Confirm Reservation" button
+6. **Confirmation:** push notification + email with summary
+
+### Additional Features
+- Edit reservation (up to 2 hours before)
+- Cancel reservation (up to 2 hours before)
+- Automatic reminder 3 hours before via push notification
+- Reservation history (past and future) in profile
+
+### Sample Data
+- Available lunch hours: 12:00 - 14:30
+- Available dinner hours: 19:00 - 22:30
+- Breakfast/Brunch hours: 08:30 - 11:30
+- Closed day: Monday
+- Max covers per slot: 40
+
+---
+
+## 5. DELIVERY & TAKEAWAY ORDERS MODULE
+
+### Order Flow
+1. User chooses: **Delivery** or **Takeaway**
+2. **Delivery:** enter/select address → verify delivery area coverage
+3. **Takeaway:** select pickup time from available slots
+4. Browse menu → add dishes to cart with customizations
+5. **Cart:** item summary, quantity, unit price, subtotal, delivery fee (delivery only), total
+6. Field for discount code or redeem loyalty points
+7. General order notes field
+8. **Checkout:** select payment method → in-app payment (Stripe)
+9. **Confirmation:** unique order number, estimated delivery/preparation time
+
+### Real-Time Order Tracking
+After confirmation, tracking screen with **progress bar** showing statuses:
+- ✅ Order Received
+- 👨‍🍳 Being Prepared
+- 📦 Ready (for takeaway: "Come pick it up!")
+- 🛵 Out for Delivery (delivery only)
+- ✅ Delivered
+
+**For delivery orders during "Out for Delivery" status:**
+- Real-time map with rider position (update every 5-10 seconds)
+- Dynamically updated ETA (estimated arrival time)
+- Option to contact rider (chat or phone button)
+
+Each status change triggers a **push notification**.
+
+### Post-Order
+- Notification to leave a review (stars + optional text)
+- Report issues (missing item, wrong order, quality) via form
+- Loyalty points credited automatically
+- "Reorder" button to repeat the same order
+
+### Sample Data
+- Delivery fee: €2.50 (free above €25)
+- Average preparation time: 20-30 minutes
+- Average delivery time: 15-25 minutes
+- Coverage area: 5km radius from restaurant
+- Minimum order for delivery: €12.00
+
+---
+
+## 6. E-COMMERCE (PRODUCT SHOP) MODULE
+
+### Product Catalog
+- Browsable catalog by categories: Merch, Body Care, Face Care, Hair Care, Libri (Books), Gift Card
+- **Each product shows:** photo gallery (carousel), name, description, price, availability (in stock / sold out), variants (size, color, format)
+- Filters and sorting: by category, price (asc/desc), newest, best sellers, rating
+- Text search bar
+- "New Arrivals" and "Best Sellers" featured sections
+- Wishlist: save products for later purchase
+
+### E-Commerce Checkout
+- Cart **separate** from restaurant cart (two distinct flows)
+- Select shipping address
+- Automatic shipping cost calculation
+- Free shipping for orders above €50
+- Apply discount code / redeem loyalty points
+- Payment: credit/debit card, Apple Pay, Google Pay (via Stripe)
+- Order confirmation with shipping tracking number
+- Returns: in-app form, request history in profile
+
+### Sample Product Data (from the real Be Kind website)
+Create at least **8 sample products:**
+
+**Libri (Books):**
+- Un Sorriso Per La Terra — 57 Consigli per Essere Più Sostenibile — A guide with 57 tips for a more sustainable lifestyle — €14.90
+- Diario Della Gratitudine — Be Kind — A gratitude journal to cultivate positivity and mindfulness daily — €14.90
+
+**Merch:**
+- T-Shirt Be Kind Classic — Unisex organic cotton t-shirt with embroidered Be Kind logo — €29.90 — Sizes: S, M, L, XL
+- Felpa Be Kind Hoodie — Hoodie with fleece lining, printed logo — €59.90 — Sizes: S, M, L, XL — Colors: Black, Beige
+- Tote Bag Be Kind — 100% natural cotton canvas bag — €15.00
+- Cappellino Be Kind — Embroidered baseball cap, adjustable — €22.00 — Colors: Black, White, Green
+
+**Gift Card:**
+- Gift Card Be Kind €25 — Redeemable on all services (restaurant, shop, events) — €25.00
+- Gift Card Be Kind €50 — Redeemable on all services — €50.00
+
+---
+
+## 7. EVENTS & WORKSHOPS MODULE
+
+### Event Catalog
+Event list displayed in **calendar + chronological list** format. Each event shows:
+- Title
+- Date and time
+- Location (address + map)
+- Duration
+- Detailed description
+- Cover photo/image
+- Available spots (with "Limited spots" or "Sold out" badge)
+- Price or "Free"
+- Category/tag: Cucina, Benessere, Musica, Arte, Community
+
+### Registration & Payment
+- Register with one tap
+- In-app payment for paid events (Stripe)
+- Confirmation via push + email with **QR code** to show at entrance
+- Cancel registration up to 48 hours before (automatic refund for paid events)
+
+### Post-Event
+- Notification to leave review/feedback
+- Loyalty points credited after check-in (QR code scan)
+- Post-event photo gallery (uploaded by staff)
+
+### Sample Events (from the real Be Kind website + extras)
+
+1. **Ceramica Workshop & Brunch | Open Lab** — Sunday April 12, 2026 — Studio Feuille Et Maman, Misano Adriatico — Hands-on ceramics workshop followed by brunch — 12 spots — €45.00 — Tag: Arte
+2. **Sip & Paint | Cattolica** — Sunday April 19, 2026 — Be Kind | Cattolica — Paint while sipping wine and cocktails. No experience needed! — 20 spots — €35.00 — Tag: Arte
+3. **Terrarium Workshop & Brunch | Cattolica** — Sunday April 26, 2026 — Be Kind | Cattolica — Build your own terrarium + brunch included — 15 spots — €40.00 — Tag: Arte
+4. **Stampa Botanica Workshop & Brunch | Cattolica** — Saturday May 16, 2026 — Be Kind | Cattolica — Botanical printing on fabric + brunch — 15 spots — €40.00 — Tag: Arte
+5. **Kokedama Workshop & Brunch | Cattolica** — Sunday May 24, 2026 — Be Kind | Cattolica — Create Japanese moss ball plants + brunch — 15 spots — €40.00 — Tag: Arte
+6. **Yoga & Brunch** — Sunday June 1, 2026 — Giardino Be Kind — Yoga session followed by healthy brunch — 25 spots — €30.00 — Tag: Benessere
+7. **Community Day: Beach Cleanup** — Saturday June 14, 2026 — Spiaggia di Cattolica — Volunteer beach cleanup + lunch offered by Be Kind — 40 spots — Free — Tag: Community
+
+---
+
+## 8. LOYALTY CARD SYSTEM WITH STAMPS + POINTS (KEY FEATURE)
+
+This is the core engagement feature. It works as a **digital loyalty card** with TWO parallel systems: **STAMPS** (like a physical stamp card) and **POINTS** (accumulated currency). Users see a visual card in the app that gets stamped as they do things.
+
+### 8A. STAMP CARDS
+
+The app features **multiple digital stamp cards**, each tied to a specific activity. When the user completes an activity, they earn a **stamp** on the relevant card. When a card is full, they unlock a **reward**.
+
+**Stamp Card Types:**
+
+| Card Name | Activity That Earns a Stamp | Stamps to Complete | Reward When Full |
+|-----------|----------------------------|-------------------|-----------------|
+| Colazione Card | Have breakfast at Be Kind | 8 stamps | Free breakfast of your choice |
+| Brunch Card | Have brunch at Be Kind | 6 stamps | Free brunch for 1 |
+| Delivery Card | Complete a delivery order | 10 stamps | Free delivery order up to €20 |
+| Workshop Card | Attend a workshop/event | 4 stamps | Free access to next workshop |
+| Shopping Card | Make an e-commerce purchase | 5 stamps | 30% off next purchase |
+| Review Card | Leave a review (any type) | 10 stamps | Dessert of your choice free |
+
+**Visual Design of Stamp Cards:**
+- Each card looks like a physical loyalty card with empty circles/slots
+- When user earns a stamp, the circle fills in with a beautiful animation (stamp/seal effect)
+- Each card has its own illustration/icon (coffee cup for breakfast, paintbrush for workshop, etc.)
+- Cards are displayed horizontally swipeable in the loyalty section
+- Show progress: "5/8 stamps" with visual filled/empty dots
+- When card is completed: celebration animation, reward unlocked notification
+- Completed cards go to "Completed Cards" archive, and a new empty card starts automatically
+
+**How Stamps Are Credited:**
+- For in-restaurant activities (breakfast, brunch, dine-in): staff scans user's QR code from the app, OR user shows order confirmation
+- For delivery/takeaway: automatic after order is marked as delivered/picked up
+- For workshops: automatic after QR code check-in at event entrance
+- For e-commerce: automatic after shipping confirmation
+- For reviews: automatic after review is submitted
+
+### 8B. POINTS SYSTEM
+
+In parallel to stamps, users also earn **Be Kind Points** for every action. Points are a global currency that can be redeemed for rewards from a catalog.
+
+**Actions That Earn Points:**
+
+| Action | Points Earned |
+|--------|--------------|
+| Complete a delivery order | 1 point per €1 spent |
+| Complete a takeaway order | 1 point per €1 spent |
+| Dine-in (breakfast, brunch, lunch, dinner) | 1 point per €1 spent |
+| E-commerce purchase | 1 point per €1 spent |
+| Book a table + show up (check-in) | 20 points |
+| Leave a dish review | 10 points |
+| Leave an order review | 15 points |
+| Leave an event review | 15 points |
+| Attend a workshop/event | 30 points |
+| Refer a friend (referral) | 50 points (when friend completes first order) |
+| Birthday bonus | 100 bonus points (automatically on birthday) |
+| First order ever (welcome bonus) | 50 bonus points |
+| Complete a stamp card | 50 bonus points |
+
+All point values must be **configurable from the admin panel**.
+
+### 8C. LOYALTY TIERS
+
+As users accumulate points, they level up through tiers that unlock increasing benefits:
+
+| Tier | Threshold | Benefits |
+|------|-----------|----------|
+| 🌱 Seed | 0 – 499 points | Standard point accumulation |
+| 🌿 Sprout | 500 – 1,499 points | Points multiplier x1.2, early access to events, 5% permanent discount |
+| 🌸 Bloom | 1,500 – 3,999 points | Points multiplier x1.5, free delivery, 10% discount, annual exclusive event |
+| 🌳 Tree | 4,000+ points | Points multiplier x2, all Bloom benefits + exclusive gifts, priority reservations |
+
+The tier names match the Be Kind nature/sustainability theme.
+
+### 8D. REWARDS CATALOG (Points Redemption)
+
+A dedicated in-app section called "Premia Te Stesso" (Reward Yourself) where users can redeem points:
+
+- 100 points → Free coffee or tea
+- 200 points → 10% off next order
+- 300 points → Free dessert
+- 500 points → Free shipping on e-commerce
+- 800 points → Free access to a workshop
+- 1,000 points → €15 voucher for the restaurant
+- 1,500 points → Dinner for 2 on the house
+- 3,000 points → Exclusive experience (dinner with the Chef)
+
+Redemption happens during checkout (for discounts/vouchers) or from the "Premia Te Stesso" section in profile.
+
+### 8E. LOYALTY SECTION UI
+
+The loyalty section in the app ("La Mia Card" or "Be Kind Card") must contain:
+- **Top area:** user's name, current tier with icon (🌱🌿🌸🌳), total points balance, progress bar to next tier
+- **Stamp Cards area:** horizontal carousel of all active stamp cards with progress dots. Tap a card to see full detail.
+- **QR Code:** the user's personal QR code that staff scan for in-restaurant stamp credits (always accessible with one tap)
+- **Points History:** chronological log of all points earned and spent, with action detail and date
+- **Rewards Catalog:** browsable list of available rewards with "Redeem" button
+- **Completed Cards Archive:** view past completed stamp cards
+
+---
+
+## 9. HOMEPAGE
+
+The homepage is the central hub. It must contain:
+- **Hero banner** (rotating carousel): active promotions, upcoming events, seasonal dishes
+- **Quick actions** (4 large buttons): Order, Reserve Table, Shop, Events
+- **Loyalty widget**: points balance + tier + progress bar + stamp cards preview (mini view of current cards with progress)
+- **"Featured" section**: dynamic content (dish of the day, upcoming event, new product)
+- **Recent orders**: for quick reorder with one tap
+- **"Dishes of the Day" section**: 2-3 highlighted dishes
+
+---
+
+## 10. OTHER PAGES
+
+### About Us (Chi Siamo)
+Page with Be Kind brand story, mission, values and team. Use this real content:
+"Ispirati dai nostri viaggi nel mondo, abbiamo portato dentro Be Kind tutto ciò che abbiamo scoperto, imparato e amato lungo il cammino. Be Kind nasce dall'idea che il cibo buono e la gentilezza possano cambiare il mondo, un piatto alla volta. Il nostro spazio a Cattolica è diventato un punto di riferimento per chi cerca un'esperienza gastronomica autentica, sostenibile e attenta alla comunità. Crediamo nella qualità degli ingredienti locali, nel rispetto per l'ambiente e nel potere di riunire le persone attorno a una tavola. Per tutti, ovunque."
+
+### Contacts & Support
+- Restaurant address with integrated map: Be Kind, Cattolica (RN)
+- Hours: Tuesday-Sunday, closed Monday
+- Breakfast/Brunch: 08:30 - 12:00
+- Lunch: 12:00 - 15:00
+- Aperitivo & Dinner: 18:00 - 23:00
+- Email: bekindgroup.italia@gmail.com
+- Instagram: @bekind_italia
+- FAQ (at least 5 frequently asked questions)
+- Contact/support form
+
+### Legal
+- Terms & Conditions (Termini e Condizioni)
+- Privacy Policy (GDPR)
+- Refund Policy (Policy Resi e Rimborsi)
+- Shipping Policy
+
+---
+
+## 11. NOTIFICATION SYSTEM
+
+Implement an in-app notification system (with push notification preparation) with these categories:
+- **Orders:** confirmation, status change, rider arriving, delivered
+- **Reservations:** confirmation, reminder, changes
+- **Events:** new events, reminder, review request
+- **Loyalty:** points credited, new stamp earned, stamp card completed, new tier reached, rewards expiring, birthday bonus
+- **Promotions:** offers, discounts, new products
+- **E-Commerce:** order confirmation, shipping, delivery
+
+Notification center accessible from bell icon in navbar with counter badge.
+
+---
+
+## 12. ADMIN PANEL
+
+Create a separate web admin panel (route /admin) protected by admin authentication, with:
+- **Dashboard:** KPIs (orders today, daily revenue, active users, reservations today, stamps issued today)
+- **Menu Management:** CRUD dishes (name, description, photo, price, allergens, category, availability)
+- **Reservation Management:** reservation list, slot configuration, capacity management
+- **Order Management:** real-time order dashboard, status changes, rider assignment
+- **E-Commerce Management:** CRUD products, inventory, variants, orders, shipments
+- **Event Management:** CRUD events, registration monitoring, check-in
+- **Loyalty Management:** configure points per action, stamp card types (stamps required, rewards), tier thresholds and benefits, rewards catalog, issue manual stamps/points
+- **User Management:** user list, history, segmentation by loyalty tier
+- **Promotion Management:** discount codes, push notifications
+
+---
+
+## 13. DATABASE STRUCTURE
+
+Main tables needed:
+- users (profile, credentials, preferences)
+- addresses (delivery/shipping addresses)
+- menu_categories
+- menu_items (dishes with photo, price, allergens, dietary tags)
+- menu_item_variants (customizations)
+- reservations (table reservations)
+- orders (delivery/takeaway orders)
+- order_items
+- order_tracking (statuses with timestamps)
+- products (e-commerce)
+- product_variants
+- product_orders
+- product_order_items
+- events
+- event_registrations
+- reviews (dishes, orders, events)
+- **stamp_card_types** (card definitions: name, activity_type, stamps_required, reward_description)
+- **user_stamp_cards** (active cards per user: user_id, card_type_id, stamps_collected, is_completed, reward_redeemed)
+- **stamp_log** (individual stamp entries: user_id, card_id, earned_at, source_type, source_id)
+- loyalty_points_log (point entries: action, points, timestamp)
+- loyalty_tiers (tier definitions)
+- loyalty_rewards (rewards catalog)
+- reward_redemptions
+- notifications
+- promo_codes
+
+---
+
+## 14. FINAL NOTES
+
+- The app must be **mobile-first** but also work on desktop
+- All content (menu, products, events, rewards, stamp cards) must be **manageable from the admin panel** without touching code
+- The design will be provided separately via screenshots — for now use a clean placeholder design matching the Be Kind warm/earthy/nature aesthetic
+- **App language: Italian**
+- **Currency: EUR (€)**
+- All dates in Italian format (DD/MM/YYYY)
+- The app must be GDPR compliant
+- The loyalty stamp card system is the most important differentiating feature — make it visually beautiful and satisfying to use (animations when earning stamps, celebrations when completing cards)
+
+---
+
+## PROMPT ENDS HERE

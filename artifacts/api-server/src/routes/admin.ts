@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { db, usersTable, dishesTable, menuCategoriesTable, eventsTable, eventRegistrationsTable, productsTable, productCategoriesTable, ordersTable, orderItemsTable, shopOrdersTable, shopOrderItemsTable, reservationsTable } from "@workspace/db";
-import { eq, desc, sql } from "drizzle-orm";
-import { getUserIdFromRequest } from "./auth";
+import { db, usersTable, dishesTable, menuCategoriesTable, eventsTable, eventRegistrationsTable, productsTable, productCategoriesTable, ordersTable, orderItemsTable, shopOrdersTable, shopOrderItemsTable, reservationsTable, loyaltyTransactionsTable, userStampsTable } from "@workspace/db";
+import { eq, desc, sql, and } from "drizzle-orm";
+import { getUserIdFromRequest, computeLoyaltyLevel } from "./auth";
 
 const router = Router();
 
@@ -374,6 +374,103 @@ router.put("/users/:id/admin", async (req, res): Promise<void> => {
   const [user] = await db.update(usersTable).set({ isAdmin: !!isAdmin }).where(eq(usersTable.id, id)).returning();
   if (!user) { res.status(404).json({ error: "Utente non trovato" }); return; }
   res.json({ id: user.id, isAdmin: user.isAdmin });
+});
+
+router.get("/loyalty/scan/:qrToken", async (req, res): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const { qrToken } = req.params;
+
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.qrToken, qrToken)).limit(1);
+  if (!user) { res.status(404).json({ error: "Utente non trovato" }); return; }
+
+  const stamps = await db.select().from(userStampsTable).where(eq(userStampsTable.userId, user.id));
+
+  const recentHistory = await db.select().from(loyaltyTransactionsTable)
+    .where(eq(loyaltyTransactionsTable.userId, user.id))
+    .orderBy(desc(loyaltyTransactionsTable.createdAt))
+    .limit(5);
+
+  res.json({
+    id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    phone: user.phone,
+    avatarUrl: user.avatarUrl,
+    loyaltyPoints: user.loyaltyPoints,
+    loyaltyLevel: user.loyaltyLevel,
+    stamps: stamps.map(s => s.stampId),
+    recentHistory: recentHistory.map(t => ({
+      id: t.id,
+      points: t.points,
+      type: t.type,
+      reason: t.reason,
+      createdAt: t.createdAt?.toISOString?.() ?? t.createdAt,
+    })),
+  });
+});
+
+router.post("/loyalty/award-points", async (req, res): Promise<void> => {
+  const adminId = await requireAdmin(req, res);
+  if (!adminId) return;
+
+  const userId = parseInt(req.body.userId);
+  const points = parseInt(req.body.points);
+  const reason = typeof req.body.reason === "string" ? req.body.reason.trim() : "";
+
+  if (!userId || isNaN(userId) || !points || isNaN(points) || points <= 0 || points > 10000) {
+    res.status(400).json({ error: "Dati non validi" });
+    return;
+  }
+
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+  if (!user) { res.status(404).json({ error: "Utente non trovato" }); return; }
+
+  const newPoints = user.loyaltyPoints + points;
+  const newLevel = computeLoyaltyLevel(newPoints);
+
+  await db.update(usersTable).set({ loyaltyPoints: newPoints, loyaltyLevel: newLevel }).where(eq(usersTable.id, userId));
+
+  await db.insert(loyaltyTransactionsTable).values({
+    userId,
+    points,
+    type: "earned",
+    reason: reason || `Punti assegnati da admin`,
+  });
+
+  res.json({ message: `${points} punti assegnati con successo`, newPoints, newLevel });
+});
+
+const VALID_STAMP_IDS = ["st1", "st2", "st3", "st4", "st5", "st6", "st7", "st8"];
+
+router.post("/loyalty/award-stamp", async (req, res): Promise<void> => {
+  const adminId = await requireAdmin(req, res);
+  if (!adminId) return;
+
+  const userId = parseInt(req.body.userId);
+  const stampId = typeof req.body.stampId === "string" ? req.body.stampId : "";
+
+  if (!userId || isNaN(userId) || !VALID_STAMP_IDS.includes(stampId)) {
+    res.status(400).json({ error: "Dati non validi" });
+    return;
+  }
+
+  const existing = await db.select().from(userStampsTable)
+    .where(and(eq(userStampsTable.userId, userId), eq(userStampsTable.stampId, stampId)))
+    .limit(1);
+
+  if (existing.length > 0) {
+    res.status(400).json({ error: "Timbro già assegnato" });
+    return;
+  }
+
+  await db.insert(userStampsTable).values({
+    userId,
+    stampId,
+    awardedBy: adminId,
+  });
+
+  res.json({ message: "Timbro assegnato con successo" });
 });
 
 export { router as adminRouter };

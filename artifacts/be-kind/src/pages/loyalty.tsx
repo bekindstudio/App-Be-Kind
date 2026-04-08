@@ -2,13 +2,16 @@ import { PageTransition } from "@/components/page-transition";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/hooks/use-auth-store";
 import { useGetLoyaltyBalance, useGetLoyaltyHistory } from "@workspace/api-client-react";
+import { customFetch } from "@workspace/api-client-react/custom-fetch";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft, Star, Gift, History, Leaf, CheckCircle2, Lock, ArrowRight,
   Users, Calendar, Coffee, Bike, Flower2, ShoppingBag, Smartphone, X,
-  TrendingUp, Utensils, MessageSquare, Instagram, Share2,
+  TrendingUp, Utensils, MessageSquare, Instagram, Share2, QrCode,
 } from "lucide-react";
 import { Link } from "wouter";
 import { useState } from "react";
+import { QRCodeSVG } from "qrcode.react";
 
 const LEVEL_EMOJI: Record<string, string> = {
   Seed: "🌱", Sprout: "🌿", Bloom: "🌸", Tree: "🌳",
@@ -89,10 +92,22 @@ export default function Loyalty() {
   const token = useAuthStore((state) => state.token);
   const { data: loyalty, isLoading } = useGetLoyaltyBalance({ query: { enabled: !!token } });
   const { data: history, isLoading: isHistoryLoading } = useGetLoyaltyHistory({ query: { enabled: !!token } });
+  const { data: qrData } = useQuery<{ qrToken: string }>({
+    queryKey: ["loyalty-qr"],
+    queryFn: () => customFetch<{ qrToken: string }>("/api/loyalty/qr-data"),
+    enabled: !!token,
+  });
+  const { data: userStamps } = useQuery<{ stampId: string }[]>({
+    queryKey: ["loyalty-stamps"],
+    queryFn: () => customFetch<{ stampId: string }[]>("/api/loyalty/stamps"),
+    enabled: !!token,
+  });
+
   const [activeTab, setActiveTab] = useState<"CARD" | "REWARDS" | "EARN">("CARD");
   const [selectedStamp, setSelectedStamp] = useState<Stamp | null>(null);
+  const [showQr, setShowQr] = useState(false);
 
-  const earnedStamps = ["st1", "st4", "st6"];
+  const earnedStampIds = userStamps?.map(s => s.stampId) ?? [];
   const userPoints = loyalty?.points ?? 0;
   const progressPercent = loyalty?.progressPercent ?? 0;
   const pointsToNext = loyalty?.pointsToNextLevel ?? 0;
@@ -113,6 +128,38 @@ export default function Loyalty() {
   return (
     <PageTransition className="min-h-full bg-background flex flex-col pb-24 relative">
 
+      {showQr && qrData?.qrToken && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm" onClick={() => setShowQr(false)}>
+          <div className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl relative" onClick={e => e.stopPropagation()}>
+            <button
+              onClick={() => setShowQr(false)}
+              className="absolute top-4 right-4 w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-200"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 rounded-full bg-[#4A6741] text-white flex items-center justify-center mb-4">
+                <QrCode size={24} />
+              </div>
+              <h3 className="font-serif font-bold text-xl mb-1">Il tuo QR Code</h3>
+              <p className="text-muted-foreground text-sm mb-6">Mostralo alla cassa per guadagnare punti e timbri</p>
+              <div className="bg-white p-4 rounded-2xl border-2 border-dashed border-[#4A6741]/20 mb-4">
+                <QRCodeSVG
+                  value={qrData.qrToken}
+                  size={200}
+                  level="H"
+                  bgColor="#FFFFFF"
+                  fgColor="#2C4A32"
+                  includeMargin={false}
+                />
+              </div>
+              <p className="text-[10px] text-muted-foreground font-mono tracking-wider">{qrData.qrToken}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {selectedStamp && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm" onClick={() => setSelectedStamp(null)}>
           <div className="bg-card rounded-3xl p-6 w-full max-w-sm shadow-2xl relative" onClick={e => e.stopPropagation()}>
@@ -125,7 +172,7 @@ export default function Loyalty() {
 
             <div className="flex flex-col items-center text-center mt-2">
               <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 ${
-                earnedStamps.includes(selectedStamp.id)
+                earnedStampIds.includes(selectedStamp.id)
                   ? "bg-[#4A6741] text-white shadow-lg"
                   : "bg-muted text-muted-foreground border-2 border-dashed border-border"
               }`}>
@@ -134,9 +181,9 @@ export default function Loyalty() {
 
               <h3 className="font-serif font-bold text-2xl mb-1">{selectedStamp.title}</h3>
               <p className={`font-bold text-sm mb-4 uppercase tracking-wider ${
-                earnedStamps.includes(selectedStamp.id) ? "text-[#4A6741]" : "text-muted-foreground"
+                earnedStampIds.includes(selectedStamp.id) ? "text-[#4A6741]" : "text-muted-foreground"
               }`}>
-                {earnedStamps.includes(selectedStamp.id) ? "Timbro Ottenuto!" : "Da Sbloccare"}
+                {earnedStampIds.includes(selectedStamp.id) ? "Timbro Ottenuto!" : "Da Sbloccare"}
               </p>
 
               <div className="bg-[#FFFBF5] dark:bg-muted p-4 rounded-xl w-full text-left mb-6 border border-secondary/20">
@@ -154,11 +201,19 @@ export default function Loyalty() {
       )}
 
       <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-md border-b border-border pt-6 pb-4 px-4">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => window.history.back()} className="rounded-full">
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <h1 className="text-2xl font-serif font-bold">Be Kind Fidelity</h1>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => window.history.back()} className="rounded-full">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <h1 className="text-2xl font-serif font-bold">Be Kind Fidelity</h1>
+          </div>
+          <button
+            onClick={() => setShowQr(true)}
+            className="w-10 h-10 bg-[#4A6741] text-white rounded-full flex items-center justify-center shadow-md active:scale-95 transition-transform"
+          >
+            <QrCode size={20} />
+          </button>
         </div>
       </div>
 
@@ -218,18 +273,32 @@ export default function Loyalty() {
               </div>
             )}
 
+            <button
+              onClick={() => setShowQr(true)}
+              className="w-full bg-white p-4 rounded-2xl shadow-soft border border-border flex items-center gap-4 active:scale-[0.98] transition-transform"
+            >
+              <div className="w-12 h-12 rounded-xl bg-[#4A6741] text-white flex items-center justify-center shrink-0">
+                <QrCode size={24} />
+              </div>
+              <div className="flex-1 text-left">
+                <h4 className="font-bold text-sm">Mostra il tuo QR Code</h4>
+                <p className="text-xs text-muted-foreground">Scannerizzalo alla cassa per guadagnare punti</p>
+              </div>
+              <ArrowRight size={16} className="text-muted-foreground" />
+            </button>
+
             <div className="bg-card p-6 rounded-3xl shadow-sm border border-border">
               <div className="flex justify-between items-center mb-2">
                 <h3 className="font-serif font-bold text-lg">La tua Collezione</h3>
                 <span className="text-xs bg-[#E9F5E9] dark:bg-[#2C4A32]/30 text-[#4A6741] px-2.5 py-1 rounded-lg font-bold">
-                  {earnedStamps.length}/{STAMPS.length}
+                  {earnedStampIds.length}/{STAMPS.length}
                 </span>
               </div>
               <p className="text-muted-foreground text-xs mb-5">Colleziona tutti i timbri per diventare un "Albero"!</p>
 
               <div className="grid grid-cols-4 gap-3">
                 {STAMPS.map((stamp) => {
-                  const isEarned = earnedStamps.includes(stamp.id);
+                  const isEarned = earnedStampIds.includes(stamp.id);
                   return (
                     <button
                       key={stamp.id}

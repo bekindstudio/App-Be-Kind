@@ -108,6 +108,16 @@
 - `artifacts/be-kind/src/pages/new-reservation.tsx` — New reservation form
 - `artifacts/be-kind/src/pages/reservations.tsx` — Reservation list
 
+## QR Code Loyalty System
+
+- **User QR Code**: Each user gets a unique QR token (format: `BK-XXXXXXXXXXXX`) stored in `users.qr_token`, generated on first request to `GET /api/loyalty/qr-data`
+- **Admin Scanner**: `/admin/scanner` page with camera-based QR scanner (html5-qrcode) + manual code entry fallback
+- **Scan Flow**: Admin scans QR → `GET /api/admin/loyalty/scan/:qrToken` returns user info, stamps, recent history → admin can award points or stamps
+- **Award Points**: `POST /api/admin/loyalty/award-points` with `{ userId, points, reason }`
+- **Award Stamps**: `POST /api/admin/loyalty/award-stamp` with `{ userId, stampId }`; 8 stamps available (st1-st8)
+- **Stamps Table**: `user_stamps` (id, user_id, stamp_id, awarded_by, created_at)
+- **Frontend packages**: `qrcode.react` (QR display), `html5-qrcode` (camera scanner)
+
 ## App Language
 
 All user-facing content is in **Italian**. Currency: EUR (€).

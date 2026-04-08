@@ -37,6 +37,7 @@ import AdminShopOrders from "@/pages/admin/shop-orders";
 import AdminReservationsPage from "@/pages/admin/reservations";
 import AdminUsersList from "@/pages/admin/users-list";
 import AdminCategories from "@/pages/admin/categories";
+import AdminScanner from "@/pages/admin/scanner";
 
 const queryClient = new QueryClient();
 
@@ -75,6 +76,7 @@ function Router() {
         <Route path="/admin/prenotazioni" component={AdminReservationsPage} />
         <Route path="/admin/utenti" component={AdminUsersList} />
         <Route path="/admin/categorie" component={AdminCategories} />
+        <Route path="/admin/scanner" component={AdminScanner} />
         <Route component={NotFound} />
       </Switch>
     </MobileLayout>

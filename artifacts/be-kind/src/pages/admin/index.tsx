@@ -2,7 +2,7 @@ import { PageTransition } from "@/components/page-transition";
 import { Button } from "@/components/ui/button";
 import { useAdminCheck, useAdminStats } from "@/hooks/use-admin";
 import { useAuthStore } from "@/hooks/use-auth-store";
-import { ArrowLeft, Calendar, ChefHat, ClipboardList, FolderOpen, Lock, MapPin, Package, ShoppingBag, Sparkles, Users } from "lucide-react";
+import { ArrowLeft, Calendar, ChefHat, ClipboardList, FolderOpen, Lock, MapPin, Package, QrCode, ShoppingBag, Sparkles, Users } from "lucide-react";
 import { Link } from "wouter";
 
 export default function AdminDashboard() {
@@ -68,6 +68,10 @@ export default function AdminDashboard() {
           <AdminCard href="/admin/prodotti" icon={<ShoppingBag className="w-6 h-6" />} title="Prodotti Bottega" subtitle={`${stats?.products ?? '...'} prodotti`} color="bg-chart-3/10 text-chart-3" />
           <AdminCard href="/admin/categorie" icon={<FolderOpen className="w-6 h-6" />} title="Categorie" subtitle="Menù e bottega" color="bg-chart-4/10 text-chart-4" />
         </div>
+      </div>
+
+      <div className="mb-6">
+        <AdminCard href="/admin/scanner" icon={<QrCode className="w-6 h-6" />} title="Scanner Fedeltà" subtitle="Scansiona QR per assegnare punti e timbri" color="bg-[#4A6741]/10 text-[#4A6741]" />
       </div>
 
       <div className="space-y-2 mb-6">

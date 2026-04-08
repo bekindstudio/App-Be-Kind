@@ -1,8 +1,9 @@
 import { Router } from "express";
-import { db, usersTable, loyaltyTransactionsTable } from "@workspace/db";
-import { eq, desc } from "drizzle-orm";
+import { db, usersTable, loyaltyTransactionsTable, userStampsTable } from "@workspace/db";
+import { eq, desc, and } from "drizzle-orm";
 import { getUserIdFromRequest, computeLoyaltyLevel } from "./auth";
 import { RedeemPointsBody } from "@workspace/api-zod";
+import crypto from "crypto";
 
 const router = Router();
 
@@ -32,6 +33,10 @@ function getLoyaltyInfo(points: number) {
   }
 
   return { level, nextLevel, pointsToNextLevel, progressPercent };
+}
+
+function generateQrToken(): string {
+  return "BK-" + crypto.randomBytes(12).toString("hex").toUpperCase();
 }
 
 router.get("/balance", async (req, res): Promise<void> => {
@@ -64,6 +69,38 @@ router.get("/history", async (req, res): Promise<void> => {
     reason: t.reason,
     createdAt: t.createdAt?.toISOString?.() ?? t.createdAt,
   })));
+});
+
+router.get("/stamps", async (req, res): Promise<void> => {
+  const userId = getUserIdFromRequest(req);
+  if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+
+  const stamps = await db.select().from(userStampsTable)
+    .where(eq(userStampsTable.userId, userId))
+    .orderBy(desc(userStampsTable.createdAt));
+
+  res.json(stamps.map(s => ({
+    id: s.id,
+    stampId: s.stampId,
+    awardedBy: s.awardedBy,
+    createdAt: s.createdAt?.toISOString?.() ?? s.createdAt,
+  })));
+});
+
+router.get("/qr-data", async (req, res): Promise<void> => {
+  const userId = getUserIdFromRequest(req);
+  if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+  if (!user) { res.status(404).json({ error: "User not found" }); return; }
+
+  let qrToken = user.qrToken;
+  if (!qrToken) {
+    qrToken = generateQrToken();
+    await db.update(usersTable).set({ qrToken }).where(eq(usersTable.id, userId));
+  }
+
+  res.json({ qrToken });
 });
 
 router.post("/redeem", async (req, res): Promise<void> => {

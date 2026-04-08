@@ -17,7 +17,19 @@ function escapeHtml(str: string | null | undefined): string {
     .replace(/'/g, "&#039;");
 }
 
-const RESTAURANT_INFO = {
+const DELIVERY_INFO = {
+  name: "0541 S.R.L.S",
+  address: "Via Carducci, 118",
+  city: "47841 Cattolica (RN)",
+  country: "Italia",
+  phone: "+39 0541 830 123",
+  email: "info@bekindcommunity.it",
+  website: "www.bekindcommunity.it",
+  piva: "IT04554910408",
+  cf: "",
+};
+
+const BOTTEGA_INFO = {
   name: "Be Kind di Michael Balleroni",
   address: "Via C. Menotti, 184",
   city: "61122 Pesaro (PU)",
@@ -45,6 +57,8 @@ function generateReceiptNumber(orderNumber: string, createdAt: Date | string): s
   return `RIC-${year}-${orderNumber}`;
 }
 
+type BusinessInfo = typeof DELIVERY_INFO;
+
 function generateReceiptHTML(data: {
   receiptNumber: string;
   orderNumber: string;
@@ -63,6 +77,7 @@ function generateReceiptHTML(data: {
   shippingCost?: number;
   total: number;
   isShop?: boolean;
+  businessInfo: BusinessInfo;
 }): string {
   const ivaAmount = data.total * IVA_RATE / (1 + IVA_RATE);
   const imponibile = data.total - ivaAmount;
@@ -122,7 +137,7 @@ function generateReceiptHTML(data: {
 <div class="receipt">
   <div class="header">
     <h1>BE KIND</h1>
-    <p>${RESTAURANT_INFO.address} — ${RESTAURANT_INFO.city}<br>${RESTAURANT_INFO.phone} — ${RESTAURANT_INFO.email}</p>
+    <p>${data.businessInfo.address} — ${data.businessInfo.city}<br>${data.businessInfo.phone} — ${data.businessInfo.email}</p>
   </div>
 
   <div class="receipt-title">
@@ -232,9 +247,9 @@ function generateReceiptHTML(data: {
   </div>
 
   <div class="footer">
-    <p><strong>${RESTAURANT_INFO.name}</strong><br>
-    P.IVA: ${RESTAURANT_INFO.piva} — C.F.: ${RESTAURANT_INFO.cf}<br>
-    ${RESTAURANT_INFO.address}, ${RESTAURANT_INFO.city}</p>
+    <p><strong>${data.businessInfo.name}</strong><br>
+    P.IVA: ${data.businessInfo.piva}${data.businessInfo.cf ? ` — C.F.: ${data.businessInfo.cf}` : ""}<br>
+    ${data.businessInfo.address}, ${data.businessInfo.city}</p>
     <div class="legal">
       Documento fiscale emesso ai sensi del D.P.R. 633/1972 e successive modificazioni.<br>
       Questo documento non sostituisce la fattura elettronica ai fini IVA se non espressamente richiesta.
@@ -288,6 +303,7 @@ router.get("/orders/:id/receipt", async (req, res): Promise<void> => {
       subtotal: order.subtotal,
       deliveryCost: order.deliveryCost,
       total: order.total,
+      businessInfo: DELIVERY_INFO,
     });
 
     res.setHeader("Content-Type", "text/html; charset=utf-8");
@@ -336,6 +352,7 @@ router.get("/shop/orders/:id/receipt", async (req, res): Promise<void> => {
       shippingCost: order.shippingCost,
       total: order.total,
       isShop: true,
+      businessInfo: BOTTEGA_INFO,
     });
 
     res.setHeader("Content-Type", "text/html; charset=utf-8");

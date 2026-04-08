@@ -15,10 +15,12 @@ import { reviewsRouter } from "./reviews";
 import { adminRouter } from "./admin";
 import { paymentsRouter } from "./payments";
 import { notificationsRouter } from "./notifications";
+import storageRouter from "./storage";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
+router.use(storageRouter);
 router.use("/auth", authRouter);
 router.use("/menu", menuRouter);
 router.use("/cart", cartRouter);

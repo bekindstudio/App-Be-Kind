@@ -100,13 +100,7 @@ export default function Login() {
               </div>
             </div>
           </>
-        ) : (
-          <div className="bg-secondary/10 border border-secondary/20 rounded-2xl p-4 mb-6">
-            <p className="text-sm text-muted-foreground text-center">
-              Per attivare l'accesso con Google, configura il Google Client ID nelle impostazioni.
-            </p>
-          </div>
-        )}
+        ) : null}
 
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-1">
@@ -139,7 +133,9 @@ export default function Login() {
           </div>
 
           <div className="pt-2 text-right">
-            <span className="text-sm text-primary font-medium cursor-pointer">Password dimenticata?</span>
+            <Link href="/forgot-password">
+              <span className="text-sm text-primary font-medium cursor-pointer">Password dimenticata?</span>
+            </Link>
           </div>
 
           <button

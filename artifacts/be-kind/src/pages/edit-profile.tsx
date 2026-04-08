@@ -4,9 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/hooks/use-auth-store";
 import { useGetProfile, useUpdateProfile } from "@workspace/api-client-react";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, Lock, Eye, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { customFetch } from "@workspace/api-client-react/custom-fetch";
 
 export default function EditProfile() {
   const token = useAuthStore((state) => state.token);
@@ -17,6 +18,12 @@ export default function EditProfile() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
+
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [showPasswords, setShowPasswords] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -38,6 +45,34 @@ export default function EditProfile() {
         toast({ title: "Aggiornamento fallito", description: err.message, variant: "destructive" });
       }
     });
+  };
+
+  const handleChangePassword = async () => {
+    if (newPassword.length < 6) {
+      toast({ title: "Password troppo corta", description: "Almeno 6 caratteri.", variant: "destructive" });
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      toast({ title: "Le password non corrispondono", variant: "destructive" });
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      await customFetch<{ message: string }>("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      toast({ title: "Password aggiornata con successo" });
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmNewPassword("");
+    } catch (err: any) {
+      toast({ title: "Errore", description: err.message || "Impossibile cambiare la password", variant: "destructive" });
+    } finally {
+      setChangingPassword(false);
+    }
   };
 
   if (isLoading || !profile) {
@@ -107,6 +142,67 @@ export default function EditProfile() {
       >
         {updateProfileMutation.isPending ? "Salvataggio..." : <><Save className="w-5 h-5 mr-2" /> Salva Modifiche</>}
       </Button>
+
+      <div className="bg-card rounded-2xl p-5 border border-border shadow-sm space-y-4 mt-6">
+        <div className="flex items-center gap-2 mb-1">
+          <Lock className="w-5 h-5 text-primary" />
+          <h2 className="text-lg font-serif font-bold">Cambia Password</h2>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Password attuale</Label>
+          <div className="relative">
+            <Input
+              type={showPasswords ? "text" : "password"}
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              placeholder="Inserisci password attuale"
+              className="h-12 bg-muted/50 rounded-xl pr-12"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPasswords(!showPasswords)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              {showPasswords ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Nuova password</Label>
+          <Input
+            type={showPasswords ? "text" : "password"}
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="Almeno 6 caratteri"
+            className="h-12 bg-muted/50 rounded-xl"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Conferma nuova password</Label>
+          <Input
+            type={showPasswords ? "text" : "password"}
+            value={confirmNewPassword}
+            onChange={(e) => setConfirmNewPassword(e.target.value)}
+            placeholder="Ripeti la nuova password"
+            className="h-12 bg-muted/50 rounded-xl"
+          />
+          {confirmNewPassword && newPassword !== confirmNewPassword && (
+            <p className="text-xs text-destructive ml-1">Le password non corrispondono</p>
+          )}
+        </div>
+
+        <Button
+          className="w-full h-12 rounded-xl font-medium"
+          variant="outline"
+          onClick={handleChangePassword}
+          disabled={changingPassword || !currentPassword || !newPassword || newPassword !== confirmNewPassword}
+        >
+          {changingPassword ? "Aggiornamento..." : "Aggiorna Password"}
+        </Button>
+      </div>
     </PageTransition>
   );
 }

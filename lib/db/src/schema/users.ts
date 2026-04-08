@@ -21,6 +21,8 @@ export const usersTable = pgTable("users", {
   notificationEvents: boolean("notification_events").notNull().default(true),
   notificationLoyalty: boolean("notification_loyalty").notNull().default(true),
   qrToken: text("qr_token").unique(),
+  resetToken: text("reset_token"),
+  resetTokenExpiry: timestamp("reset_token_expiry", { withTimezone: true }),
   isAdmin: boolean("is_admin").notNull().default(false),
   acceptedTerms: boolean("accepted_terms").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

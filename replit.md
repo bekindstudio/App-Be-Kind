@@ -32,9 +32,11 @@
 ## Authentication
 
 - Email/password with custom token (Bearer)
-- **Google Sign-In** ready — set `VITE_GOOGLE_CLIENT_ID` env var to activate
+- **Google Sign-In** ready — set `VITE_GOOGLE_CLIENT_ID` env var to activate (hidden when not configured)
 - Backend endpoint: `POST /api/auth/google` verifies Google credential and creates/finds user
 - Users table supports `googleId` column; `passwordHash` is nullable for Google-only users
+- **Password Reset**: `POST /api/auth/forgot-password` generates reset token (stored hashed in DB, 1h expiry); token only returned to admin users; `POST /api/auth/reset-password` validates token and sets new password
+- **Change Password**: `POST /api/auth/change-password` (authenticated) — verifies old password, sets new one; available in profile edit page
 
 ## Wix Integration
 
@@ -94,6 +96,15 @@
 - **Image fallbacks**: Null `imageUrl` renders icon placeholder (UtensilsCrossed for dishes, Calendar for events) on `bg-secondary/10`
 - **CSS utilities**: `shadow-soft`, `shadow-card`, `no-scrollbar`, `active-elevate`
 
+## Object Storage (Image Uploads)
+
+- **Provisioned**: GCS-backed via Replit Object Storage
+- **Upload endpoint**: `POST /api/storage/uploads/request-url` — admin-only, returns presigned URL for direct GCS upload
+- **Serve endpoints**: `GET /api/storage/objects/*` (private), `GET /api/storage/public-objects/*` (public)
+- **Allowed types**: JPEG, PNG, WebP, GIF — max 10MB
+- **Frontend component**: `ImageUpload` (`components/image-upload.tsx`) — drag-and-drop + URL input, used in admin forms for dishes, products, events
+- **Server files**: `lib/objectStorage.ts`, `lib/objectAcl.ts`, `routes/storage.ts`
+
 ## Key Files
 
 - `lib/db/src/schema/users.ts` — Users table (email, googleId, loyalty, preferences, isAdmin)
@@ -103,6 +114,11 @@
 - `artifacts/api-server/src/wix-bookings.ts` — Wix Table Reservations API wrapper
 - `artifacts/api-server/src/wix-events.ts` — Wix Events API wrapper (sync, tickets, checkout)
 - `artifacts/be-kind/src/pages/login.tsx` — Login page with Google Sign-In
+- `artifacts/be-kind/src/pages/forgot-password.tsx` — Password reset request page
+- `artifacts/be-kind/src/pages/reset-password.tsx` — New password form (with token validation)
+- `artifacts/be-kind/src/pages/orders.tsx` — Orders page with Ristorante/Bottega tabs
+- `artifacts/be-kind/src/components/image-upload.tsx` — Image upload component (admin)
+- `artifacts/api-server/src/routes/storage.ts` — Object storage upload/serve routes
 - `artifacts/be-kind/src/pages/admin/` — Admin panel pages (dashboard, forms, lists)
 - `artifacts/be-kind/src/hooks/use-admin.ts` — Admin hooks (queries + mutations)
 - `artifacts/be-kind/src/pages/new-reservation.tsx` — New reservation form

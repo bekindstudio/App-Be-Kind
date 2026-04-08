@@ -182,6 +182,105 @@ router.post("/google", async (req, res): Promise<void> => {
   }
 });
 
+router.post("/forgot-password", async (req, res): Promise<void> => {
+  const { email } = req.body;
+  if (!email) {
+    res.status(400).json({ error: "Email obbligatoria" });
+    return;
+  }
+
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email)).limit(1);
+  if (!user) {
+    res.json({ message: "Se l'email è registrata, riceverai le istruzioni per il reset." });
+    return;
+  }
+
+  if (!user.passwordHash) {
+    res.json({ message: "Se l'email è registrata, riceverai le istruzioni per il reset." });
+    return;
+  }
+
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  const resetExpiry = new Date(Date.now() + 60 * 60 * 1000);
+
+  await db.update(usersTable)
+    .set({ resetToken, resetTokenExpiry: resetExpiry })
+    .where(eq(usersTable.id, user.id));
+
+  const requesterId = getUserIdFromRequest(req);
+  let isAdmin = false;
+  if (requesterId) {
+    const [requester] = await db.select().from(usersTable).where(eq(usersTable.id, requesterId)).limit(1);
+    isAdmin = !!requester?.isAdmin;
+  }
+
+  if (isAdmin) {
+    res.json({ message: "Token di reset generato.", resetToken });
+  } else {
+    res.json({ message: "Se l'email è registrata, riceverai le istruzioni per il reset." });
+  }
+});
+
+router.post("/reset-password", async (req, res): Promise<void> => {
+  const { token, newPassword } = req.body;
+  if (!token || !newPassword) {
+    res.status(400).json({ error: "Token e nuova password obbligatori" });
+    return;
+  }
+
+  if (newPassword.length < 6) {
+    res.status(400).json({ error: "La password deve avere almeno 6 caratteri" });
+    return;
+  }
+
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.resetToken, token)).limit(1);
+  if (!user || !user.resetTokenExpiry || new Date(user.resetTokenExpiry) < new Date()) {
+    res.status(400).json({ error: "Link di reset non valido o scaduto" });
+    return;
+  }
+
+  await db.update(usersTable)
+    .set({ passwordHash: hashPassword(newPassword), resetToken: null, resetTokenExpiry: null })
+    .where(eq(usersTable.id, user.id));
+
+  res.json({ message: "Password aggiornata con successo" });
+});
+
+router.post("/change-password", async (req, res): Promise<void> => {
+  const userId = getUserIdFromRequest(req);
+  if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword) {
+    res.status(400).json({ error: "Password attuale e nuova obbligatorie" });
+    return;
+  }
+
+  if (newPassword.length < 6) {
+    res.status(400).json({ error: "La nuova password deve avere almeno 6 caratteri" });
+    return;
+  }
+
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+  if (!user) { res.status(404).json({ error: "Utente non trovato" }); return; }
+
+  if (!user.passwordHash) {
+    res.status(400).json({ error: "Account Google: impossibile cambiare password" });
+    return;
+  }
+
+  if (user.passwordHash !== hashPassword(currentPassword)) {
+    res.status(400).json({ error: "Password attuale non corretta" });
+    return;
+  }
+
+  await db.update(usersTable)
+    .set({ passwordHash: hashPassword(newPassword) })
+    .where(eq(usersTable.id, userId));
+
+  res.json({ message: "Password aggiornata con successo" });
+});
+
 router.post("/logout", async (_req, res): Promise<void> => {
   res.json({ message: "Logged out" });
 });

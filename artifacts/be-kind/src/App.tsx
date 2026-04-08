@@ -41,6 +41,8 @@ import AdminScanner from "@/pages/admin/scanner";
 import AdminNotifications from "@/pages/admin/notifications";
 import Notifications from "@/pages/notifications";
 import ShopCheckout from "@/pages/shop-checkout";
+import ForgotPassword from "@/pages/forgot-password";
+import ResetPassword from "@/pages/reset-password";
 import PrivacyPolicy from "@/pages/privacy-policy";
 import Terms from "@/pages/terms";
 import { CookieConsent } from "@/components/cookie-consent";
@@ -54,6 +56,8 @@ function Router() {
         <Route path="/" component={Home} />
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
+        <Route path="/forgot-password" component={ForgotPassword} />
+        <Route path="/reset-password" component={ResetPassword} />
         <Route path="/menu" component={Menu} />
         <Route path="/menu/:id" component={DishDetail} />
         <Route path="/cart" component={Cart} />

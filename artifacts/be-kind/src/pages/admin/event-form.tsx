@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Calendar, Clock, ImageIcon, MapPin, Save, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "wouter";
+import { ImageUpload } from "@/components/image-upload";
 
 const EVENT_CATEGORIES = ["Workshop", "Degustazione", "Musica", "Yoga", "Sociale", "Festività", "Altro"];
 
@@ -170,20 +171,12 @@ export default function EventForm() {
           )}
         </div>
 
-        <div className="bg-card rounded-2xl p-5 border border-border shadow-sm space-y-4">
-          <div className="flex items-center gap-2 mb-1">
+        <div className="bg-card rounded-2xl p-5 border border-border shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
             <ImageIcon className="w-5 h-5 text-secondary" />
             <h3 className="font-serif font-semibold text-lg">Immagine</h3>
           </div>
-          <div className="space-y-2">
-            <Label>URL Immagine</Label>
-            <Input value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="https://..." className="h-12 bg-muted/50 rounded-xl" />
-          </div>
-          {imageUrl && (
-            <div className="w-full h-40 rounded-xl overflow-hidden bg-muted">
-              <img src={imageUrl} alt="Anteprima" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display = 'none')} />
-            </div>
-          )}
+          <ImageUpload value={imageUrl} onChange={setImageUrl} label="Foto dell'evento" />
         </div>
 
         <Button

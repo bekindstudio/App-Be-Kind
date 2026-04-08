@@ -147,7 +147,7 @@ export default function Shop() {
                   </div>
                   <div className="flex-1 flex flex-col">
                     <span className="text-[9px] text-primary font-bold uppercase tracking-widest mb-1">
-                      {categories?.find(c => c.slug === product.categorySlug)?.name || ''}
+                      {(product as any).categorySlug ? categories?.find(c => c.slug === (product as any).categorySlug)?.name || '' : (product as any).categoryName || ''}
                     </span>
                     <h4 className="font-serif font-bold text-foreground text-sm mb-1 leading-tight line-clamp-2">{product.name}</h4>
                     <div className="mt-auto pt-2 flex items-center justify-between">

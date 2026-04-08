@@ -6,6 +6,7 @@ export const productCategoriesTable = pgTable("product_categories", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
+  icon: text("icon"),
 });
 
 export const insertProductCategorySchema = createInsertSchema(productCategoriesTable).omit({ id: true });

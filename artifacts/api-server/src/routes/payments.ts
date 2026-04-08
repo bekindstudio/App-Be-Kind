@@ -81,7 +81,10 @@ router.post("/create-checkout-session", async (req, res): Promise<void> => {
     const domain = process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost';
     const baseUrl = `https://${domain}`;
 
-    const lineItems = cartItems.map(item => ({
+    const lineItems: Array<{
+      price_data: { currency: string; product_data: { name: string; metadata?: Record<string, string> }; unit_amount: number };
+      quantity: number;
+    }> = cartItems.map(item => ({
       price_data: {
         currency: 'eur',
         product_data: {
@@ -295,7 +298,10 @@ router.post("/create-shop-checkout-session", async (req, res): Promise<void> => 
     const domain = process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost';
     const baseUrl = `https://${domain}`;
 
-    const lineItems = cartItems.map(item => ({
+    const lineItems: Array<{
+      price_data: { currency: string; product_data: { name: string; metadata?: Record<string, string> }; unit_amount: number };
+      quantity: number;
+    }> = cartItems.map(item => ({
       price_data: {
         currency: 'eur',
         product_data: {

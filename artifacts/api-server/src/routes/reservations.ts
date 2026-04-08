@@ -210,11 +210,12 @@ router.post("/", async (req, res): Promise<void> => {
 
           const finalReservation = reserveResult?.reservation || heldReservation;
 
+          const dateStr = date instanceof Date ? date.toISOString().split("T")[0] : String(date);
           const [localReservation] = await db
             .insert(reservationsTable)
             .values({
               userId,
-              date,
+              date: dateStr,
               time,
               guests,
               notes: notes ?? null,
@@ -255,11 +256,12 @@ router.post("/", async (req, res): Promise<void> => {
     }
   }
 
+  const fallbackDateStr = date instanceof Date ? date.toISOString().split("T")[0] : String(date);
   const [reservation] = await db
     .insert(reservationsTable)
     .values({
       userId,
-      date,
+      date: fallbackDateStr,
       time,
       guests,
       notes: notes ?? null,
@@ -346,9 +348,19 @@ router.put("/:id", async (req, res): Promise<void> => {
     return;
   }
 
+  const updateData: Record<string, unknown> = {};
+  if (parsed.data.date !== undefined) {
+    const d = parsed.data.date;
+    updateData.date = d instanceof Date ? d.toISOString().split("T")[0] : String(d);
+  }
+  if (parsed.data.time !== undefined) updateData.time = parsed.data.time;
+  if (parsed.data.guests !== undefined) updateData.guests = parsed.data.guests;
+  if (parsed.data.notes !== undefined) updateData.notes = parsed.data.notes;
+  if ((parsed.data as any).status !== undefined) updateData.status = (parsed.data as any).status;
+
   const [updated] = await db
     .update(reservationsTable)
-    .set({ ...parsed.data })
+    .set(updateData)
     .where(eq(reservationsTable.id, id))
     .returning();
 

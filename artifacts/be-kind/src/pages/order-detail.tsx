@@ -1,7 +1,18 @@
 import { PageTransition } from "@/components/page-transition";
 import { Button } from "@/components/ui/button";
 import { useGetOrder } from "@workspace/api-client-react";
-import type { DeliveryTracking, Order } from "@workspace/api-client-react";
+import type { Order } from "@workspace/api-client-react";
+
+interface DeliveryTracking {
+  progress: number;
+  riderStatus: string;
+  rider?: {
+    name: string;
+    phone?: string;
+    vehicle?: string;
+  };
+  estimatedArrival?: string;
+}
 import {
   ArrowLeft, CheckCircle2, Clock, MapPin, Package, Timer,
   Phone, Bike, Car, Navigation, ChefHat, CircleDot, Store,
@@ -102,7 +113,8 @@ function DeliveryMap({ tracking }: { tracking: DeliveryTracking }) {
 }
 
 function RiderCard({ tracking }: { tracking: DeliveryTracking }) {
-  const { rider } = tracking;
+  const rider = tracking.rider;
+  if (!rider) return null;
 
   return (
     <div className="bg-card rounded-[24px] p-5 border border-border/30 shadow-sm">
@@ -117,12 +129,12 @@ function RiderCard({ tracking }: { tracking: DeliveryTracking }) {
         <div className="flex-1">
           <p className="font-semibold text-base">{rider.name}</p>
           <div className="flex items-center gap-1.5 text-muted-foreground text-sm mt-0.5">
-            <VehicleIcon vehicle={rider.vehicle} />
+            <VehicleIcon vehicle={rider.vehicle || "scooter"} />
             <span className="capitalize">{rider.vehicle === "bici" ? "Bicicletta" : rider.vehicle === "auto" ? "Automobile" : "Scooter"}</span>
           </div>
         </div>
         <a
-          href={`tel:${rider.phone}`}
+          href={`tel:${rider.phone || ""}`}
           className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center hover:bg-secondary/20 transition-colors"
         >
           <Phone className="w-5 h-5 text-secondary" />
@@ -224,7 +236,7 @@ export default function OrderDetail() {
   const currentStatusIndex = statuses.indexOf(order.status);
   const isDelivery = order.type === "delivery";
   const isActive = order.status !== "delivered" && order.status !== "cancelled";
-  const tracking = order.tracking ?? null;
+  const tracking = (order as any).tracking ?? null;
 
   return (
     <PageTransition className="min-h-screen bg-background flex flex-col pb-24">

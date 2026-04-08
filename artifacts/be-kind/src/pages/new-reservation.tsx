@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuthStore } from "@/hooks/use-auth-store";
 import { useToast } from "@/hooks/use-toast";
 import { useCreateReservation, useGetAvailability } from "@workspace/api-client-react";
-import { ArrowLeft, Clock, Users } from "lucide-react";
+import { ArrowLeft, Clock, MapPin, Phone, Users } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
 
@@ -27,7 +27,7 @@ export default function NewReservation() {
 
   const handleBook = () => {
     if (!formattedDate || !time) {
-      toast({ title: "Select date and time", variant: "destructive" });
+      toast({ title: "Seleziona data e orario", variant: "destructive" });
       return;
     }
 
@@ -35,11 +35,11 @@ export default function NewReservation() {
       data: { date: formattedDate, time, guests, notes: notes || undefined }
     }, {
       onSuccess: () => {
-        toast({ title: "Table Booked!" });
+        toast({ title: "Tavolo prenotato!" });
         setLocation("/reservations");
       },
       onError: (err) => {
-        toast({ title: "Failed to book", description: err.message, variant: "destructive" });
+        toast({ title: "Prenotazione fallita", description: err.message, variant: "destructive" });
       }
     });
   };
@@ -50,14 +50,28 @@ export default function NewReservation() {
         <Button variant="ghost" size="icon" onClick={() => window.history.back()} className="rounded-full">
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <h1 className="text-2xl font-serif font-bold">Book a Table</h1>
+        <h1 className="text-2xl font-serif font-bold">Prenota un Tavolo</h1>
       </div>
 
       <div className="space-y-6">
+        <div className="bg-secondary/10 rounded-2xl p-4 border border-secondary/20">
+          <div className="flex items-start gap-3">
+            <MapPin className="w-5 h-5 text-secondary mt-0.5 shrink-0" />
+            <div>
+              <p className="font-serif font-semibold text-foreground">Ristorante Be Kind</p>
+              <p className="text-sm text-muted-foreground">Via Carducci 118, Cattolica (RN)</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 mt-2 ml-8">
+            <Phone className="w-4 h-4 text-muted-foreground" />
+            <a href="tel:+393313555993" className="text-sm text-secondary font-medium">+39 331 355 5993</a>
+          </div>
+        </div>
+
         <div className="bg-card rounded-2xl p-5 border border-border shadow-sm">
           <div className="flex items-center gap-2 mb-4">
             <Users className="w-5 h-5 text-primary" />
-            <h3 className="font-serif text-lg font-semibold">Number of Guests</h3>
+            <h3 className="font-serif text-lg font-semibold">Numero di Ospiti</h3>
           </div>
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
@@ -74,7 +88,7 @@ export default function NewReservation() {
         </div>
 
         <div className="bg-card rounded-2xl p-5 border border-border shadow-sm">
-          <h3 className="font-serif text-lg font-semibold mb-4">Select Date</h3>
+          <h3 className="font-serif text-lg font-semibold mb-4">Seleziona Data</h3>
           <div className="flex justify-center bg-background rounded-xl p-2 border border-border">
             <Calendar
               mode="single"
@@ -90,7 +104,7 @@ export default function NewReservation() {
           <div className="bg-card rounded-2xl p-5 border border-border shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <Clock className="w-5 h-5 text-secondary" />
-              <h3 className="font-serif text-lg font-semibold">Available Times</h3>
+              <h3 className="font-serif text-lg font-semibold">Orari Disponibili</h3>
             </div>
             <div className="grid grid-cols-3 gap-3">
               {availability.availableSlots.map(slot => (
@@ -109,15 +123,21 @@ export default function NewReservation() {
 
         {availability?.closedDay && (
           <div className="bg-destructive/10 text-destructive p-4 rounded-xl text-center font-medium">
-            We are closed on this day. Please select another date.
+            Siamo chiusi in questo giorno. Seleziona un'altra data.
+          </div>
+        )}
+
+        {availability && !availability.closedDay && availability.availableSlots.length === 0 && (
+          <div className="bg-muted p-4 rounded-xl text-center font-medium text-muted-foreground">
+            Nessun orario disponibile per questa data. Prova un altro giorno.
           </div>
         )}
 
         <div className="bg-card rounded-2xl p-5 border border-border shadow-sm">
-          <Label htmlFor="notes" className="font-serif text-lg font-semibold mb-2 block">Special Requests</Label>
+          <Label htmlFor="notes" className="font-serif text-lg font-semibold mb-2 block">Richieste Speciali</Label>
           <Textarea 
             id="notes" 
-            placeholder="Anniversary? Dietary requirements?" 
+            placeholder="Anniversario? Esigenze alimentari? Seggiolone?" 
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             className="rounded-xl bg-muted/50 border-transparent resize-none min-h-[100px]"
@@ -129,7 +149,7 @@ export default function NewReservation() {
           onClick={handleBook}
           disabled={createReservationMutation.isPending || !date || !time}
         >
-          {createReservationMutation.isPending ? "Confirming..." : "Confirm Reservation"}
+          {createReservationMutation.isPending ? "Confermando..." : "Conferma Prenotazione"}
         </Button>
       </div>
     </PageTransition>

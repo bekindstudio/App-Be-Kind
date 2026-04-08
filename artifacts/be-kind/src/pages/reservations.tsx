@@ -6,6 +6,20 @@ import { ArrowLeft, Calendar, Clock, MapPin, Plus, Users } from "lucide-react";
 import { Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
 
+const STATUS_LABELS: Record<string, string> = {
+  confirmed: "Confermata",
+  completed: "Completata",
+  cancelled: "Cancellata",
+  pending: "In attesa",
+};
+
+const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
+  confirmed: "default",
+  completed: "secondary",
+  cancelled: "outline",
+  pending: "outline",
+};
+
 export default function Reservations() {
   const token = useAuthStore((state) => state.token);
   const { data: reservations, isLoading } = useGetReservations({ query: { enabled: !!token } });
@@ -14,10 +28,10 @@ export default function Reservations() {
     return (
       <PageTransition className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center">
         <Calendar className="w-16 h-16 text-muted-foreground mb-4" />
-        <h2 className="text-2xl font-serif font-bold mb-2">Sign in to book</h2>
-        <p className="text-muted-foreground mb-6">Log in to view and manage your reservations.</p>
+        <h2 className="text-2xl font-serif font-bold mb-2">Accedi per prenotare</h2>
+        <p className="text-muted-foreground mb-6">Accedi per vedere e gestire le tue prenotazioni.</p>
         <Link href="/login">
-          <Button className="rounded-xl w-full max-w-sm h-12 text-lg">Sign In</Button>
+          <Button className="rounded-xl w-full max-w-sm h-12 text-lg">Accedi</Button>
         </Link>
       </PageTransition>
     );
@@ -30,7 +44,7 @@ export default function Reservations() {
           <Button variant="ghost" size="icon" onClick={() => window.history.back()} className="rounded-full">
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-2xl font-serif font-bold">Reservations</h1>
+          <h1 className="text-2xl font-serif font-bold">Le Mie Prenotazioni</h1>
         </div>
         <Link href="/reservations/new">
           <Button size="icon" className="rounded-full w-10 h-10">
@@ -49,10 +63,10 @@ export default function Reservations() {
           <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-4">
             <Calendar className="w-8 h-8 text-muted-foreground" />
           </div>
-          <h2 className="text-xl font-serif font-semibold mb-2">No reservations yet</h2>
-          <p className="text-muted-foreground mb-6">Book a table to experience Be Kind.</p>
+          <h2 className="text-xl font-serif font-semibold mb-2">Nessuna prenotazione</h2>
+          <p className="text-muted-foreground mb-6">Prenota un tavolo al Ristorante Be Kind a Cattolica.</p>
           <Link href="/reservations/new">
-            <Button className="rounded-xl px-8">Book a Table</Button>
+            <Button className="rounded-xl px-8">Prenota un Tavolo</Button>
           </Link>
         </div>
       ) : (
@@ -62,28 +76,33 @@ export default function Reservations() {
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-3 text-lg font-bold font-serif">
                   <Calendar className="w-5 h-5 text-primary" />
-                  {new Date(res.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                  {new Date(res.date).toLocaleDateString("it-IT", { weekday: 'short', month: 'short', day: 'numeric' })}
                 </div>
-                <Badge variant={res.status === 'confirmed' ? 'default' : res.status === 'completed' ? 'secondary' : 'outline'}>
-                  {res.status}
+                <Badge variant={STATUS_VARIANT[res.status] || "outline"}>
+                  {STATUS_LABELS[res.status] || res.status}
                 </Badge>
               </div>
               
-              <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground mb-4">
+              <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground mb-3">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-secondary" />
                   <span className="font-medium text-foreground">{res.time}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4 text-secondary" />
-                  <span className="font-medium text-foreground">{res.guests} guests</span>
+                  <span className="font-medium text-foreground">{res.guests} {res.guests === 1 ? 'ospite' : 'ospiti'}</span>
                 </div>
               </div>
 
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <MapPin className="w-3.5 h-3.5" />
+                <span>Via Carducci 118, Cattolica (RN)</span>
+              </div>
+
               {res.status === 'confirmed' && (
-                <div className="flex gap-3 pt-4 border-t border-border mt-2">
-                  <Button variant="outline" className="flex-1 rounded-xl">Modify</Button>
-                  <Button variant="outline" className="flex-1 rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/20">Cancel</Button>
+                <div className="flex gap-3 pt-4 border-t border-border mt-3">
+                  <Button variant="outline" className="flex-1 rounded-xl">Modifica</Button>
+                  <Button variant="outline" className="flex-1 rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/20">Cancella</Button>
                 </div>
               )}
             </div>

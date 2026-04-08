@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { db, usersTable, dishesTable, menuCategoriesTable, eventsTable, eventRegistrationsTable, productsTable, productCategoriesTable, ordersTable, orderItemsTable, shopOrdersTable, shopOrderItemsTable, reservationsTable, loyaltyTransactionsTable, userStampsTable } from "@workspace/db";
-import { eq, desc, sql, and } from "drizzle-orm";
+import { db, usersTable, dishesTable, menuCategoriesTable, eventsTable, eventRegistrationsTable, productsTable, productCategoriesTable, ordersTable, orderItemsTable, shopOrdersTable, shopOrderItemsTable, reservationsTable, loyaltyTransactionsTable, userStampsTable, notificationsTable, notificationReadsTable } from "@workspace/db";
+import { eq, desc, sql, and, isNull } from "drizzle-orm";
 import { getUserIdFromRequest, computeLoyaltyLevel } from "./auth";
 
 const router = Router();
@@ -505,6 +505,84 @@ router.post("/loyalty/award-stamp", async (req, res): Promise<void> => {
   });
 
   res.json({ message: "Timbro assegnato con successo" });
+});
+
+router.get("/notifications", async (req, res): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+
+  const rows = await db
+    .select({
+      id: notificationsTable.id,
+      title: notificationsTable.title,
+      body: notificationsTable.body,
+      type: notificationsTable.type,
+      targetUserId: notificationsTable.targetUserId,
+      createdAt: notificationsTable.createdAt,
+      readCount: sql<number>`(SELECT count(*)::int FROM notification_reads WHERE notification_id = ${notificationsTable.id})`,
+    })
+    .from(notificationsTable)
+    .orderBy(desc(notificationsTable.createdAt))
+    .limit(100);
+
+  const userIds = rows.filter(r => r.targetUserId).map(r => r.targetUserId!);
+  let userMap: Record<number, string> = {};
+  if (userIds.length > 0) {
+    const users = await db.select({ id: usersTable.id, firstName: usersTable.firstName, lastName: usersTable.lastName }).from(usersTable).where(sql`${usersTable.id} = ANY(${userIds})`);
+    for (const u of users) {
+      userMap[u.id] = `${u.firstName} ${u.lastName}`;
+    }
+  }
+
+  res.json(
+    rows.map((r) => ({
+      id: r.id,
+      title: r.title,
+      body: r.body,
+      type: r.type,
+      targetUserId: r.targetUserId ?? null,
+      targetUserName: r.targetUserId ? (userMap[r.targetUserId] ?? null) : null,
+      createdAt: r.createdAt.toISOString(),
+      readCount: r.readCount,
+    }))
+  );
+});
+
+router.post("/notifications", async (req, res): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+
+  const { title, body, type, targetUserId } = req.body;
+  if (!title || !body) { res.status(400).json({ error: "Titolo e messaggio richiesti" }); return; }
+
+  const [notification] = await db
+    .insert(notificationsTable)
+    .values({
+      title,
+      body,
+      type: type || "general",
+      targetUserId: targetUserId || null,
+    })
+    .returning();
+
+  res.status(201).json({
+    id: notification.id,
+    title: notification.title,
+    body: notification.body,
+    type: notification.type,
+    targetUserId: notification.targetUserId ?? null,
+    targetUserName: null,
+    createdAt: notification.createdAt.toISOString(),
+    readCount: 0,
+  });
+});
+
+router.delete("/notifications/:id", async (req, res): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) { res.status(400).json({ error: "ID non valido" }); return; }
+
+  await db.delete(notificationsTable).where(eq(notificationsTable.id, id));
+  res.json({ success: true });
 });
 
 export { router as adminRouter };

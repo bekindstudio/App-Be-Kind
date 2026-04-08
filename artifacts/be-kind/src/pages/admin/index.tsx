@@ -2,7 +2,7 @@ import { PageTransition } from "@/components/page-transition";
 import { Button } from "@/components/ui/button";
 import { useAdminCheck, useAdminStats } from "@/hooks/use-admin";
 import { useAuthStore } from "@/hooks/use-auth-store";
-import { ArrowLeft, Calendar, ChefHat, ClipboardList, FolderOpen, Lock, MapPin, Package, QrCode, ShoppingBag, Sparkles, Users } from "lucide-react";
+import { ArrowLeft, Bell, Calendar, ChefHat, ClipboardList, FolderOpen, Lock, MapPin, Package, QrCode, ShoppingBag, Sparkles, Users } from "lucide-react";
 import { Link } from "wouter";
 
 export default function AdminDashboard() {
@@ -80,6 +80,13 @@ export default function AdminDashboard() {
           <AdminCard href="/admin/ordini" icon={<ClipboardList className="w-6 h-6" />} title="Ordini Ristorante" subtitle={`${stats?.orders ?? '...'} totali · ${stats?.pendingOrders ?? 0} attivi`} color="bg-primary/10 text-primary" badge={stats?.pendingOrders} />
           <AdminCard href="/admin/ordini-bottega" icon={<Package className="w-6 h-6" />} title="Ordini Bottega" subtitle={`${stats?.shopOrders ?? '...'} totali · ${stats?.pendingShopOrders ?? 0} attivi`} color="bg-secondary/10 text-secondary" badge={stats?.pendingShopOrders} />
           <AdminCard href="/admin/prenotazioni" icon={<MapPin className="w-6 h-6" />} title="Prenotazioni Tavoli" subtitle={`${stats?.reservations ?? '...'} totali · ${stats?.todayReservations ?? 0} oggi`} color="bg-chart-3/10 text-chart-3" badge={stats?.todayReservations} />
+        </div>
+      </div>
+
+      <div className="space-y-2 mb-6">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">Comunicazione</p>
+        <div className="flex flex-col gap-3">
+          <AdminCard href="/admin/notifiche" icon={<Bell className="w-6 h-6" />} title="Notifiche" subtitle="Invia notifiche agli utenti" color="bg-amber-100/80 text-amber-700" />
         </div>
       </div>
 

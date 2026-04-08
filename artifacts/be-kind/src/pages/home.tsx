@@ -1,6 +1,6 @@
 import { PageTransition } from "@/components/page-transition";
 import { useAuthStore } from "@/hooks/use-auth-store";
-import { useGetFeaturedDishes, useGetMe, useGetCart } from "@workspace/api-client-react";
+import { useGetFeaturedDishes, useGetMe, useGetCart, useGetUnreadCount } from "@workspace/api-client-react";
 import { customFetch } from "@workspace/api-client-react/custom-fetch";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Calendar, ShoppingBag, UtensilsCrossed, Bike, Bell, Sparkles, MapPin, Clock, ShoppingCart } from "lucide-react";
@@ -15,6 +15,8 @@ export default function Home() {
   const { data: featuredDishes } = useGetFeaturedDishes();
   const { data: cart } = useGetCart({ query: { enabled: !!token } });
   const cartCount = cart?.items?.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0) || 0;
+  const { data: unreadData } = useGetUnreadCount({ query: { enabled: !!token } });
+  const unreadCount = unreadData?.count ?? 0;
   const { data: events } = useQuery<any[]>({
     queryKey: ["events-home"],
     queryFn: () => customFetch<any[]>("/api/events?upcoming=true"),
@@ -39,9 +41,16 @@ export default function Home() {
           <img src={`${BASE}logo-terracotta.png`} alt="Be Kind Logo" className="h-9 w-auto object-contain" />
         </div>
         <div className="flex gap-2.5">
-          <button className="w-10 h-10 rounded-2xl bg-card text-foreground shadow-sm flex items-center justify-center hover:bg-card/80 transition-all active:scale-95 border border-border/50">
-            <Bell size={19} strokeWidth={1.8} />
-          </button>
+          <Link href="/notifications">
+            <div className="relative w-10 h-10 rounded-2xl bg-card text-foreground shadow-sm flex items-center justify-center hover:bg-card/80 transition-all active:scale-95 border border-border/50">
+              <Bell size={19} strokeWidth={1.8} />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-1">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </div>
+          </Link>
           <Link href="/cart">
             <div className="relative w-10 h-10 rounded-2xl bg-card text-foreground shadow-sm flex items-center justify-center hover:bg-card/80 transition-all active:scale-95 border border-border/50">
               <ShoppingCart size={19} strokeWidth={1.8} />

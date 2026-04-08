@@ -1169,3 +1169,79 @@ export const GetReviewsResponseItem = zod.object({
   createdAt: zod.string(),
 });
 export const GetReviewsResponse = zod.array(GetReviewsResponseItem);
+
+/**
+ * @summary Get user notifications
+ */
+export const GetNotificationsResponseItem = zod.object({
+  id: zod.number(),
+  title: zod.string(),
+  body: zod.string(),
+  type: zod.string(),
+  isRead: zod.boolean(),
+  createdAt: zod.string(),
+});
+export const GetNotificationsResponse = zod.array(GetNotificationsResponseItem);
+
+/**
+ * @summary Get unread notification count
+ */
+export const GetUnreadCountResponse = zod.object({
+  count: zod.number(),
+});
+
+/**
+ * @summary Mark notification as read
+ */
+export const MarkNotificationReadParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const MarkNotificationReadResponse = zod.object({
+  success: zod.boolean(),
+});
+
+/**
+ * @summary Mark all notifications as read
+ */
+export const MarkAllNotificationsReadResponse = zod.object({
+  success: zod.boolean(),
+});
+
+/**
+ * @summary Get all notifications (admin)
+ */
+export const GetAdminNotificationsResponseItem = zod.object({
+  id: zod.number(),
+  title: zod.string(),
+  body: zod.string(),
+  type: zod.string(),
+  targetUserId: zod.number().nullish(),
+  targetUserName: zod.string().nullish(),
+  createdAt: zod.string(),
+  readCount: zod.number(),
+});
+export const GetAdminNotificationsResponse = zod.array(
+  GetAdminNotificationsResponseItem,
+);
+
+/**
+ * @summary Create notification (admin)
+ */
+export const CreateNotificationBody = zod.object({
+  title: zod.string(),
+  body: zod.string(),
+  type: zod.string().optional(),
+  targetUserId: zod.number().nullish(),
+});
+
+/**
+ * @summary Delete notification (admin)
+ */
+export const DeleteNotificationParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteNotificationResponse = zod.object({
+  success: zod.boolean(),
+});

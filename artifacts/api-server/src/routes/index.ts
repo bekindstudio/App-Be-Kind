@@ -14,6 +14,7 @@ import { profileRouter } from "./profile";
 import { reviewsRouter } from "./reviews";
 import { adminRouter } from "./admin";
 import { paymentsRouter } from "./payments";
+import { notificationsRouter } from "./notifications";
 
 const router: IRouter = Router();
 
@@ -30,6 +31,7 @@ router.use("/events", eventsRouter);
 router.use("/loyalty", loyaltyRouter);
 router.use("/profile", profileRouter);
 router.use("/reviews", reviewsRouter);
+router.use("/notifications", notificationsRouter);
 router.use("/admin", adminRouter);
 router.use("/payments", paymentsRouter);
 

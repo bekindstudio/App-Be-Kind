@@ -38,6 +38,8 @@ import AdminReservationsPage from "@/pages/admin/reservations";
 import AdminUsersList from "@/pages/admin/users-list";
 import AdminCategories from "@/pages/admin/categories";
 import AdminScanner from "@/pages/admin/scanner";
+import AdminNotifications from "@/pages/admin/notifications";
+import Notifications from "@/pages/notifications";
 import PrivacyPolicy from "@/pages/privacy-policy";
 import Terms from "@/pages/terms";
 import { CookieConsent } from "@/components/cookie-consent";
@@ -80,6 +82,8 @@ function Router() {
         <Route path="/admin/utenti" component={AdminUsersList} />
         <Route path="/admin/categorie" component={AdminCategories} />
         <Route path="/admin/scanner" component={AdminScanner} />
+        <Route path="/admin/notifiche" component={AdminNotifications} />
+        <Route path="/notifications" component={Notifications} />
         <Route path="/privacy" component={PrivacyPolicy} />
         <Route path="/terms" component={Terms} />
         <Route component={NotFound} />

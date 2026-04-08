@@ -8,3 +8,4 @@ export * from "./events";
 export * from "./loyalty";
 export * from "./reviews";
 export * from "./cart";
+export * from "./notifications";

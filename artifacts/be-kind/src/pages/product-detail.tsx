@@ -76,9 +76,9 @@ export default function ProductDetail() {
         </p>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t border-border z-40 md:w-[430px] md:left-1/2 md:-translate-x-1/2">
+      <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-full max-w-[430px] p-4 z-40">
         <Button 
-          className="w-full h-14 rounded-xl text-lg shadow-lg hover-elevate bg-secondary text-secondary-foreground hover:bg-secondary/90"
+          className="w-full h-14 rounded-2xl text-lg shadow-lg hover-elevate bg-secondary text-secondary-foreground hover:bg-secondary/90"
           onClick={handleAddToCart}
           disabled={addToCartMutation.isPending}
         >

@@ -5,6 +5,17 @@ const WIX_ACCOUNT_ID = process.env.WIX_ACCOUNT_ID!;
 let resolvedSiteId: string | null = null;
 let cachedLocationId: string | null = null;
 
+const CATTOLICA_LOCATION_ID = "a151fa65-753a-402e-9e1a-9f3deb3527f2";
+const CATTOLICA_LOCATION = {
+  id: "a151fa65-753a-402e-9e1a-9f3deb3527f2",
+  name: "Ristorante Be Kind",
+  city: "Cattolica",
+  address: "Via Carducci, 118, Cattolica (RN)",
+  email: "bekindcattolica@gmail.com",
+  phone: "+39 331 355 5993",
+  timezone: "Europe/Rome",
+};
+
 function accountHeaders(): Record<string, string> {
   return {
     Authorization: WIX_API_KEY,
@@ -99,15 +110,20 @@ export async function getReservationLocationId(): Promise<string | null> {
     for (const loc of locations) {
       console.log(`[Wix]   - ${loc.default ? "(default)" : ""} id: ${loc.id}, archived: ${loc.archived}`);
     }
-    const active = locations.find((l: any) => !l.archived);
+    const cattolica = locations.find((l: any) => l.locationId === CATTOLICA_LOCATION_ID && !l.archived);
+    const active = cattolica || locations.find((l: any) => !l.archived);
     if (active) {
       cachedLocationId = active.id;
       return cachedLocationId;
     }
   } catch (err: any) {
-    console.error("[Wix] Failed to list reservation locations:", err.message);
+    console.error("[Wix] Table Reservations not installed, using local system:", err.message);
   }
   return null;
+}
+
+export function getCattolicaLocation() {
+  return CATTOLICA_LOCATION;
 }
 
 export async function getTimeSlots(

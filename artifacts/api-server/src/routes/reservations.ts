@@ -12,6 +12,7 @@ import {
   cancelReservation,
   listReservationLocations,
   getSiteId,
+  getCattolicaLocation,
 } from "../wix-bookings";
 
 const router = Router();
@@ -364,31 +365,21 @@ router.get("/wix/status", async (_req, res): Promise<void> => {
   try {
     const siteId = await getSiteId();
     const locationId = await getReservationLocationId();
+    const location = getCattolicaLocation();
     res.json({
-      connected: !!locationId,
+      connected: !!siteId,
       siteId,
-      locationId,
+      tableReservationsInstalled: !!locationId,
+      reservationLocationId: locationId,
+      restaurant: location,
       message: locationId
-        ? "Connesso a Wix Table Reservations"
+        ? "Connesso a Wix Table Reservations - Ristorante Be Kind Cattolica"
         : siteId
-          ? "Sito trovato ma nessuna location di prenotazione configurata"
+          ? "Sito Wix connesso. Installa l'app 'Table Reservations' per collegare le prenotazioni. Nel frattempo le prenotazioni funzionano con il sistema locale."
           : "Impossibile trovare il sito Wix",
     });
   } catch (err: any) {
     res.json({ connected: false, message: err.message });
-  }
-});
-
-router.get("/wix/locations", async (_req, res): Promise<void> => {
-  if (!WIX_ENABLED) {
-    res.json({ enabled: false, locations: [] });
-    return;
-  }
-  try {
-    const result = await listReservationLocations();
-    res.json({ enabled: true, locations: result?.reservationLocations || [] });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
   }
 });
 

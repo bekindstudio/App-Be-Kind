@@ -31,11 +31,11 @@ export default function EditProfile() {
       data: { firstName, lastName, phone }
     }, {
       onSuccess: () => {
-        toast({ title: "Profile updated" });
+        toast({ title: "Profilo aggiornato" });
         window.history.back();
       },
       onError: (err) => {
-        toast({ title: "Failed to update", description: err.message, variant: "destructive" });
+        toast({ title: "Aggiornamento fallito", description: err.message, variant: "destructive" });
       }
     });
   };
@@ -59,12 +59,12 @@ export default function EditProfile() {
         <Button variant="ghost" size="icon" onClick={() => window.history.back()} className="rounded-full">
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <h1 className="text-2xl font-serif font-bold">Edit Profile</h1>
+        <h1 className="text-2xl font-serif font-bold">Modifica Profilo</h1>
       </div>
 
       <div className="bg-card rounded-2xl p-5 border border-border shadow-sm space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="firstName">First Name</Label>
+          <Label htmlFor="firstName">Nome</Label>
           <Input 
             id="firstName"
             value={firstName}
@@ -73,7 +73,7 @@ export default function EditProfile() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="lastName">Last Name</Label>
+          <Label htmlFor="lastName">Cognome</Label>
           <Input 
             id="lastName"
             value={lastName}
@@ -82,7 +82,7 @@ export default function EditProfile() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="phone">Phone</Label>
+          <Label htmlFor="phone">Telefono</Label>
           <Input 
             id="phone"
             value={phone}
@@ -91,7 +91,7 @@ export default function EditProfile() {
           />
         </div>
         <div className="space-y-2 opacity-50">
-          <Label>Email (Cannot be changed)</Label>
+          <Label>Email (non modificabile)</Label>
           <Input 
             value={profile.email}
             disabled
@@ -105,7 +105,7 @@ export default function EditProfile() {
         onClick={handleSave}
         disabled={updateProfileMutation.isPending}
       >
-        {updateProfileMutation.isPending ? "Saving..." : <><Save className="w-5 h-5 mr-2" /> Save Changes</>}
+        {updateProfileMutation.isPending ? "Salvataggio..." : <><Save className="w-5 h-5 mr-2" /> Salva Modifiche</>}
       </Button>
     </PageTransition>
   );

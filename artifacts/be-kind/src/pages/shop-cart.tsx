@@ -13,9 +13,9 @@ export default function ShopCart() {
     return (
       <PageTransition className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center">
         <ShoppingBag className="w-16 h-16 text-muted-foreground mb-4" />
-        <h2 className="text-2xl font-serif font-bold mb-2">Sign in to checkout</h2>
+        <h2 className="text-2xl font-serif font-bold mb-2">Accedi per acquistare</h2>
         <Link href="/login">
-          <Button className="rounded-xl w-full max-w-sm h-12 text-lg">Sign In</Button>
+          <Button className="rounded-xl w-full max-w-sm h-12 text-lg">Accedi</Button>
         </Link>
       </PageTransition>
     );
@@ -27,7 +27,7 @@ export default function ShopCart() {
         <Button variant="ghost" size="icon" onClick={() => window.history.back()} className="rounded-full">
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <h1 className="text-2xl font-serif font-bold">Shopping Bag</h1>
+        <h1 className="text-2xl font-serif font-bold">La Tua Borsa</h1>
       </div>
 
       {isLoading ? (
@@ -40,9 +40,9 @@ export default function ShopCart() {
           <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-4">
             <ShoppingBag className="w-8 h-8 text-muted-foreground" />
           </div>
-          <h2 className="text-xl font-serif font-semibold mb-2">Your bag is empty</h2>
+          <h2 className="text-xl font-serif font-semibold mb-2">La borsa è vuota</h2>
           <Link href="/shop">
-            <Button className="rounded-xl px-8 mt-4 bg-secondary text-secondary-foreground hover:bg-secondary/90">Browse Bottega</Button>
+            <Button className="rounded-xl px-8 mt-4 bg-secondary text-secondary-foreground hover:bg-secondary/90">Esplora la Bottega</Button>
           </Link>
         </div>
       ) : (
@@ -64,21 +64,21 @@ export default function ShopCart() {
 
           <div className="bg-card rounded-2xl p-5 border border-border space-y-3">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Subtotal</span>
+              <span className="text-muted-foreground">Subtotale</span>
               <span>€{cart.subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Shipping</span>
+              <span className="text-muted-foreground">Spedizione</span>
               <span>€{cart.shippingCost.toFixed(2)}</span>
             </div>
             <div className="border-t border-border pt-3 flex justify-between font-bold text-lg">
-              <span>Total</span>
+              <span>Totale</span>
               <span className="text-secondary">€{cart.total.toFixed(2)}</span>
             </div>
           </div>
 
           <Button className="w-full h-14 rounded-xl text-lg font-medium shadow-lg hover-elevate bg-secondary text-secondary-foreground hover:bg-secondary/90">
-            Proceed to Checkout
+            Procedi al Pagamento
           </Button>
         </div>
       )}

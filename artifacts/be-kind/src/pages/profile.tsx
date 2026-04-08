@@ -7,6 +7,17 @@ import { Link, useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useLogout } from "@workspace/api-client-react";
 
+const LEVEL_LABELS: Record<string, string> = {
+  Seed: "Seme",
+  Sprout: "Germoglio",
+  Bloom: "Fiore",
+  Tree: "Albero",
+  Bronze: "Bronzo",
+  Silver: "Argento",
+  Gold: "Oro",
+  Platinum: "Platino",
+};
+
 export default function Profile() {
   const token = useAuthStore((state) => state.token);
   const setToken = useAuthStore((state) => state.setToken);
@@ -21,10 +32,10 @@ export default function Profile() {
     return (
       <PageTransition className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center">
         <UserIcon className="w-16 h-16 text-muted-foreground mb-4" />
-        <h2 className="text-2xl font-serif font-bold mb-2">Sign in to your profile</h2>
-        <p className="text-muted-foreground mb-6">Log in to view your loyalty points and account details.</p>
+        <h2 className="text-2xl font-serif font-bold mb-2">Accedi al tuo profilo</h2>
+        <p className="text-muted-foreground mb-6">Accedi per vedere i tuoi punti fedeltà e i dettagli dell'account.</p>
         <Link href="/login">
-          <Button className="rounded-xl w-full max-w-sm h-12 text-lg">Sign In</Button>
+          <Button className="rounded-xl w-full max-w-sm h-12 text-lg">Accedi</Button>
         </Link>
       </PageTransition>
     );
@@ -34,7 +45,7 @@ export default function Profile() {
     logoutMutation.mutate(undefined, {
       onSettled: () => {
         setToken(null);
-        toast({ title: "Logged out successfully" });
+        toast({ title: "Disconnessione effettuata" });
         setLocation("/");
       }
     });
@@ -69,15 +80,15 @@ export default function Profile() {
           <Link href="/loyalty">
             <div className="bg-card border border-border rounded-2xl p-5 shadow-sm active-elevate flex justify-between items-center">
               <div>
-                <div className="text-sm text-muted-foreground mb-1">Loyalty Points</div>
+                <div className="text-sm text-muted-foreground mb-1">Punti Fedeltà</div>
                 <div className="text-3xl font-bold text-primary">{loyalty.points}</div>
               </div>
               <div className="text-right">
                 <div className="inline-block px-3 py-1 bg-secondary/10 text-secondary rounded-full text-sm font-semibold mb-1">
-                  {loyalty.level} Member
+                  Membro {LEVEL_LABELS[loyalty.level] || loyalty.level}
                 </div>
                 <div className="text-xs text-muted-foreground flex items-center justify-end gap-1">
-                  View rewards <ChevronRight className="w-3 h-3" />
+                  Vedi premi <ChevronRight className="w-3 h-3" />
                 </div>
               </div>
             </div>
@@ -91,7 +102,7 @@ export default function Profile() {
                 <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-foreground">
                   <UserIcon className="w-5 h-5" />
                 </div>
-                <span className="font-medium">Personal Information</span>
+                <span className="font-medium">Informazioni Personali</span>
               </div>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </div>
@@ -102,7 +113,7 @@ export default function Profile() {
                 <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-foreground">
                   <Calendar className="w-5 h-5" />
                 </div>
-                <span className="font-medium">My Reservations</span>
+                <span className="font-medium">Le Mie Prenotazioni</span>
               </div>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </div>
@@ -113,7 +124,7 @@ export default function Profile() {
                 <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-foreground">
                   <Package className="w-5 h-5" />
                 </div>
-                <span className="font-medium">Order History</span>
+                <span className="font-medium">Storico Ordini</span>
               </div>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </div>
@@ -126,7 +137,7 @@ export default function Profile() {
           onClick={handleLogout}
         >
           <LogOut className="w-5 h-5 mr-2" />
-          Sign Out
+          Esci
         </Button>
       </div>
     </PageTransition>

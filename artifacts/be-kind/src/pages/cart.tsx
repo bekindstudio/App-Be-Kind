@@ -13,10 +13,10 @@ export default function Cart() {
     return (
       <PageTransition className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center">
         <ShoppingBag className="w-16 h-16 text-muted-foreground mb-4" />
-        <h2 className="text-2xl font-serif font-bold mb-2">Sign in to order</h2>
-        <p className="text-muted-foreground mb-6">Log in to view your cart and place orders.</p>
+        <h2 className="text-2xl font-serif font-bold mb-2">Accedi per ordinare</h2>
+        <p className="text-muted-foreground mb-6">Accedi per vedere il carrello e fare ordini.</p>
         <Link href="/login">
-          <Button className="rounded-xl w-full max-w-sm h-12 text-lg">Sign In</Button>
+          <Button className="rounded-xl w-full max-w-sm h-12 text-lg">Accedi</Button>
         </Link>
       </PageTransition>
     );
@@ -28,7 +28,7 @@ export default function Cart() {
         <Button variant="ghost" size="icon" onClick={() => window.history.back()} className="rounded-full">
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <h1 className="text-2xl font-serif font-bold">Your Order</h1>
+        <h1 className="text-2xl font-serif font-bold">Il Tuo Ordine</h1>
       </div>
 
       {isLoading ? (
@@ -41,10 +41,10 @@ export default function Cart() {
           <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-4">
             <ShoppingBag className="w-8 h-8 text-muted-foreground" />
           </div>
-          <h2 className="text-xl font-serif font-semibold mb-2">Your cart is empty</h2>
-          <p className="text-muted-foreground mb-6">Looks like you haven't added anything yet.</p>
+          <h2 className="text-xl font-serif font-semibold mb-2">Il carrello è vuoto</h2>
+          <p className="text-muted-foreground mb-6">Non hai ancora aggiunto nulla.</p>
           <Link href="/menu">
-            <Button className="rounded-xl px-8">Browse Menu</Button>
+            <Button className="rounded-xl px-8">Sfoglia il Menù</Button>
           </Link>
         </div>
       ) : (
@@ -67,22 +67,22 @@ export default function Cart() {
 
           <div className="bg-card rounded-2xl p-5 border border-border space-y-3">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Subtotal</span>
+              <span className="text-muted-foreground">Subtotale</span>
               <span>€{cart.subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Delivery</span>
+              <span className="text-muted-foreground">Consegna</span>
               <span>€{cart.deliveryCost.toFixed(2)}</span>
             </div>
             <div className="border-t border-border pt-3 flex justify-between font-bold text-lg">
-              <span>Total</span>
+              <span>Totale</span>
               <span className="text-primary">€{cart.total.toFixed(2)}</span>
             </div>
           </div>
 
           <Link href="/order/checkout">
             <Button className="w-full h-14 rounded-xl text-lg font-medium shadow-lg hover-elevate">
-              Checkout
+              Procedi all'Ordine
             </Button>
           </Link>
         </div>

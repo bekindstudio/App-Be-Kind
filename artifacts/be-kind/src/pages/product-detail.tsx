@@ -25,10 +25,10 @@ export default function ProductDetail() {
     
     addToCartMutation.mutate({ data: { productId: product.id, quantity } }, {
       onSuccess: () => {
-        toast({ title: "Added to cart", description: `${quantity}x ${product.name}` });
+        toast({ title: "Aggiunto alla borsa", description: `${quantity}x ${product.name}` });
       },
       onError: (err) => {
-        toast({ title: "Failed to add", description: err.message, variant: "destructive" });
+        toast({ title: "Errore nell'aggiunta", description: err.message, variant: "destructive" });
       }
     });
   };
@@ -83,7 +83,7 @@ export default function ProductDetail() {
           disabled={addToCartMutation.isPending}
         >
           <ShoppingBag className="w-5 h-5 mr-2" />
-          Add to Bag
+          Aggiungi alla Borsa
         </Button>
       </div>
     </PageTransition>

@@ -20,12 +20,12 @@ export default function Menu() {
   return (
     <PageTransition className="min-h-full bg-background flex flex-col pb-6">
       <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-md border-b border-border pt-6 pb-2 px-4">
-        <h1 className="text-3xl font-serif font-bold mb-4">Our Menu</h1>
+        <h1 className="text-3xl font-serif font-bold mb-4">Il Nostro Menù</h1>
         
         <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input 
-            placeholder="Search dishes..." 
+            placeholder="Cerca piatti..." 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9 bg-muted/50 border-transparent rounded-xl h-10"
@@ -43,7 +43,7 @@ export default function Menu() {
                   : "bg-transparent border-border text-foreground hover:bg-muted"
               )}
             >
-              All
+              Tutti
             </button>
             {categories?.map((cat) => (
               <button
@@ -73,7 +73,7 @@ export default function Menu() {
           </div>
         ) : dishes?.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
-            No dishes found.
+            Nessun piatto trovato.
           </div>
         ) : (
           <div className="flex flex-col gap-3">

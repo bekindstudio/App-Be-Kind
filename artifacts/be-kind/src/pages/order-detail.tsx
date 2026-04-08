@@ -4,6 +4,19 @@ import { useGetOrder } from "@workspace/api-client-react";
 import { ArrowLeft, CheckCircle2, Clock, MapPin, Package, Timer } from "lucide-react";
 import { Link, useParams } from "wouter";
 
+const STATUS_LABELS: Record<string, string> = {
+  received: "Ricevuto",
+  preparing: "In preparazione",
+  ready: "Pronto",
+  delivering: "In consegna",
+  delivered: "Consegnato",
+};
+
+const TYPE_LABELS: Record<string, string> = {
+  delivery: "Consegna",
+  takeaway: "Asporto",
+};
+
 export default function OrderDetail() {
   const { id } = useParams<{ id: string }>();
   const { data: order, isLoading } = useGetOrder(Number(id), { query: { enabled: !!id } });
@@ -27,13 +40,13 @@ export default function OrderDetail() {
           <Button variant="ghost" size="icon" onClick={() => window.history.back()} className="rounded-full bg-background/50 hover:bg-background">
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-2xl font-serif font-bold">Order #{order.orderNumber}</h1>
+          <h1 className="text-2xl font-serif font-bold">Ordine #{order.orderNumber}</h1>
         </div>
         
         <div className="bg-card rounded-2xl p-5 shadow-sm border border-border">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="font-serif text-lg font-bold">Status</h3>
-            <span className="text-sm font-medium text-primary capitalize">{order.status}</span>
+            <h3 className="font-serif text-lg font-bold">Stato</h3>
+            <span className="text-sm font-medium text-primary capitalize">{STATUS_LABELS[order.status] || order.status}</span>
           </div>
           
           <div className="relative pt-2">
@@ -49,7 +62,7 @@ export default function OrderDetail() {
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center mb-2 transition-colors ${i <= currentStatusIndex ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
                     {i <= currentStatusIndex ? <CheckCircle2 className="w-4 h-4" /> : <div className="w-2 h-2 rounded-full bg-background"></div>}
                   </div>
-                  {i === currentStatusIndex && <span className="text-[10px] font-bold uppercase tracking-wider text-primary absolute -bottom-4">{s}</span>}
+                  {i === currentStatusIndex && <span className="text-[10px] font-bold uppercase tracking-wider text-primary absolute -bottom-4">{STATUS_LABELS[s] || s}</span>}
                 </div>
               ))}
             </div>
@@ -59,8 +72,8 @@ export default function OrderDetail() {
             <div className="mt-8 flex items-center gap-3 bg-secondary/10 text-secondary p-4 rounded-xl">
               <Timer className="w-5 h-5" />
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider opacity-80">Estimated Arrival</p>
-                <p className="font-bold text-lg">{order.estimatedDeliveryTime} mins</p>
+                <p className="text-xs font-semibold uppercase tracking-wider opacity-80">Arrivo Stimato</p>
+                <p className="font-bold text-lg">{order.estimatedDeliveryTime} min</p>
               </div>
             </div>
           )}
@@ -69,7 +82,7 @@ export default function OrderDetail() {
 
       <div className="px-4 py-6 space-y-6">
         <div className="bg-card rounded-2xl p-5 border border-border shadow-sm">
-          <h3 className="font-serif text-lg font-bold mb-4">Order Items</h3>
+          <h3 className="font-serif text-lg font-bold mb-4">Articoli Ordinati</h3>
           <div className="space-y-4">
             {order.items.map((item) => (
               <div key={item.id} className="flex justify-between text-sm">
@@ -86,31 +99,31 @@ export default function OrderDetail() {
           </div>
           <div className="border-t border-border mt-4 pt-4 space-y-2 text-sm">
             <div className="flex justify-between text-muted-foreground">
-              <span>Subtotal</span>
+              <span>Subtotale</span>
               <span>€{order.subtotal.toFixed(2)}</span>
             </div>
             {order.type === 'delivery' && (
               <div className="flex justify-between text-muted-foreground">
-                <span>Delivery Fee</span>
+                <span>Costo Consegna</span>
                 <span>€{order.deliveryCost.toFixed(2)}</span>
               </div>
             )}
             <div className="flex justify-between font-bold text-base pt-2">
-              <span>Total</span>
+              <span>Totale</span>
               <span className="text-primary">€{order.total.toFixed(2)}</span>
             </div>
           </div>
         </div>
 
         <div className="bg-card rounded-2xl p-5 border border-border shadow-sm">
-          <h3 className="font-serif text-lg font-bold mb-4">Details</h3>
+          <h3 className="font-serif text-lg font-bold mb-4">Dettagli</h3>
           <div className="space-y-3 text-sm">
             <div className="flex gap-3 text-muted-foreground">
               <Package className="w-5 h-5 shrink-0" />
               <div>
-                <p className="font-medium text-foreground capitalize">{order.type}</p>
+                <p className="font-medium text-foreground">{TYPE_LABELS[order.type] || order.type}</p>
                 {order.type === 'delivery' && order.deliveryAddress && <p>{order.deliveryAddress}</p>}
-                {order.type === 'takeaway' && order.pickupTime && <p>Pickup at {order.pickupTime}</p>}
+                {order.type === 'takeaway' && order.pickupTime && <p>Ritiro alle {order.pickupTime}</p>}
               </div>
             </div>
           </div>

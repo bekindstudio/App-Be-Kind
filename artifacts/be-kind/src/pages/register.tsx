@@ -188,7 +188,7 @@ export default function Register() {
                 Accetto i termini e le condizioni
               </label>
               <p className="text-xs text-muted-foreground">
-                Accetti i nostri Termini di Servizio e la Privacy Policy.
+                Accetti i nostri Termini di Servizio e l'Informativa sulla Privacy.
               </p>
             </div>
           </div>

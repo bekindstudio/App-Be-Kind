@@ -21,10 +21,10 @@ function BottomNav() {
 
   const navItems = [
     { icon: Home, label: "Home", href: "/" },
-    { icon: UtensilsCrossed, label: "Menu", href: "/menu" },
-    { icon: ShoppingCart, label: "Orders", href: "/orders" },
-    { icon: ShoppingBag, label: "Shop", href: "/shop" },
-    { icon: User, label: "Profile", href: "/profile" },
+    { icon: UtensilsCrossed, label: "Menù", href: "/menu" },
+    { icon: ShoppingCart, label: "Ordini", href: "/orders" },
+    { icon: ShoppingBag, label: "Bottega", href: "/shop" },
+    { icon: User, label: "Profilo", href: "/profile" },
   ];
 
   return (

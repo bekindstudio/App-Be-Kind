@@ -33,7 +33,7 @@ export default function Shop() {
         <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input 
-            placeholder="Search our pantry..." 
+            placeholder="Cerca nella dispensa..." 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9 bg-muted/50 border-transparent rounded-xl h-10"
@@ -51,7 +51,7 @@ export default function Shop() {
                   : "bg-transparent border-border text-foreground hover:bg-muted"
               )}
             >
-              All
+              Tutti
             </button>
             {categories?.map((cat) => (
               <button
@@ -81,7 +81,7 @@ export default function Shop() {
           </div>
         ) : products?.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
-            No products found.
+            Nessun prodotto trovato.
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4">
@@ -96,7 +96,7 @@ export default function Shop() {
                     />
                     {product.isNewArrival && (
                       <span className="absolute top-2 left-2 bg-primary text-primary-foreground text-[10px] uppercase font-bold px-2 py-0.5 rounded-sm tracking-wider">
-                        New
+                        Nuovo
                       </span>
                     )}
                   </div>

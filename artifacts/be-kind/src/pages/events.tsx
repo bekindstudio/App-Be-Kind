@@ -15,7 +15,7 @@ export default function Events() {
           <Button variant="ghost" size="icon" onClick={() => window.history.back()} className="rounded-full">
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-3xl font-serif font-bold">Experiences</h1>
+          <h1 className="text-3xl font-serif font-bold">Esperienze</h1>
         </div>
       </div>
 
@@ -28,8 +28,8 @@ export default function Events() {
         ) : !events || events.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center py-12">
             <CalendarIcon className="w-16 h-16 text-muted-foreground mb-4" />
-            <h2 className="text-xl font-serif font-semibold mb-2">No upcoming events</h2>
-            <p className="text-muted-foreground">Check back later for our new experiences.</p>
+            <h2 className="text-xl font-serif font-semibold mb-2">Nessun evento in programma</h2>
+            <p className="text-muted-foreground">Torna più tardi per le nuove esperienze.</p>
           </div>
         ) : (
           events.map(event => (
@@ -45,7 +45,7 @@ export default function Events() {
                   )}
                   <div className="absolute top-3 right-3 flex gap-2">
                     <Badge className="bg-background text-foreground hover:bg-background border-none shadow-sm font-semibold">
-                      {new Date(event.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                      {new Date(event.date).toLocaleDateString("it-IT", { month: 'short', day: 'numeric' })}
                     </Badge>
                   </div>
                 </div>
@@ -53,7 +53,7 @@ export default function Events() {
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-serif font-bold text-xl">{event.title}</h3>
                     <span className="font-semibold text-primary">
-                      {event.isFree ? 'Free' : `€${event.price}`}
+                      {event.isFree ? 'Gratis' : `€${event.price}`}
                     </span>
                   </div>
                   <p className="text-muted-foreground text-sm line-clamp-2 mb-4">

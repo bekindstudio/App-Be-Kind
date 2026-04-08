@@ -16,15 +16,15 @@ export default function EventDetail() {
 
   const handleRegister = () => {
     if (!token) {
-      toast({ title: "Please sign in to register", variant: "destructive" });
+      toast({ title: "Accedi per iscriverti", variant: "destructive" });
       return;
     }
     registerMutation.mutate({ data: { eventId: Number(id) } }, {
       onSuccess: () => {
-        toast({ title: "Registered Successfully", description: "You are on the list!" });
+        toast({ title: "Iscrizione confermata", description: "Sei nella lista!" });
       },
       onError: (err) => {
-        toast({ title: "Registration failed", description: err.message, variant: "destructive" });
+        toast({ title: "Iscrizione fallita", description: err.message, variant: "destructive" });
       }
     });
   };
@@ -67,28 +67,28 @@ export default function EventDetail() {
           <div className="flex items-start gap-3">
             <Calendar className="w-5 h-5 text-primary shrink-0 mt-0.5" />
             <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Date</p>
-              <p className="font-medium">{new Date(event.date).toLocaleDateString()}</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Data</p>
+              <p className="font-medium">{new Date(event.date).toLocaleDateString("it-IT")}</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
             <Clock className="w-5 h-5 text-secondary shrink-0 mt-0.5" />
             <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Time</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Orario</p>
               <p className="font-medium">{event.startTime}</p>
             </div>
           </div>
           <div className="flex items-start gap-3 col-span-2">
             <MapPin className="w-5 h-5 text-chart-3 shrink-0 mt-0.5" />
             <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Location</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Luogo</p>
               <p className="font-medium">{event.location}</p>
             </div>
           </div>
         </div>
 
         <div>
-          <h3 className="font-serif text-xl font-bold mb-3">About this event</h3>
+          <h3 className="font-serif text-xl font-bold mb-3">Informazioni sull'evento</h3>
           <p className="text-muted-foreground leading-relaxed">
             {event.description}
           </p>
@@ -99,10 +99,10 @@ export default function EventDetail() {
         <div className="flex items-center justify-between mb-3 px-2">
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm font-medium">{spotsLeft} spots left</span>
+            <span className="text-sm font-medium">{spotsLeft} {spotsLeft === 1 ? 'posto disponibile' : 'posti disponibili'}</span>
           </div>
           <div className="font-bold text-xl">
-            {event.isFree ? "Free" : `€${event.price.toFixed(2)}`}
+            {event.isFree ? "Gratis" : `€${event.price.toFixed(2)}`}
           </div>
         </div>
         <Button 
@@ -110,7 +110,7 @@ export default function EventDetail() {
           onClick={handleRegister}
           disabled={registerMutation.isPending || event.isFull || event.isRegistered}
         >
-          {event.isRegistered ? "Already Registered" : event.isFull ? "Event Full" : "Reserve Spot"}
+          {event.isRegistered ? "Già Iscritto" : event.isFull ? "Evento Completo" : "Prenota il Posto"}
         </Button>
       </div>
     </PageTransition>

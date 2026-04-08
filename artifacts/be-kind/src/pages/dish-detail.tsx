@@ -26,11 +26,11 @@ export default function DishDetail() {
     
     addToCartMutation.mutate({ data: { dishId: dish.id, quantity } }, {
       onSuccess: () => {
-        toast({ title: "Added to cart", description: `${quantity}x ${dish.name}` });
+        toast({ title: "Aggiunto al carrello", description: `${quantity}x ${dish.name}` });
         window.history.back();
       },
       onError: (err) => {
-        toast({ title: "Failed to add", description: err.message, variant: "destructive" });
+        toast({ title: "Errore nell'aggiunta", description: err.message, variant: "destructive" });
       }
     });
   };
@@ -75,7 +75,7 @@ export default function DishDetail() {
         {dish.averageRating && (
           <div className="flex items-center gap-1 text-sm font-medium mb-4 text-amber-500">
             <Star className="w-4 h-4 fill-current" />
-            <span>{dish.averageRating} ({dish.reviewCount} reviews)</span>
+            <span>{dish.averageRating} ({dish.reviewCount} {dish.reviewCount === 1 ? 'recensione' : 'recensioni'})</span>
           </div>
         )}
 
@@ -93,7 +93,7 @@ export default function DishDetail() {
 
         {dish.ingredients && dish.ingredients.length > 0 && (
           <div className="mb-6">
-            <h3 className="font-semibold mb-2 font-serif text-lg">Ingredients</h3>
+            <h3 className="font-semibold mb-2 font-serif text-lg">Ingredienti</h3>
             <p className="text-sm text-muted-foreground">{dish.ingredients.join(", ")}</p>
           </div>
         )}
@@ -126,7 +126,7 @@ export default function DishDetail() {
             disabled={addToCartMutation.isPending}
           >
             <ShoppingBag className="w-5 h-5 mr-2" />
-            Add to Order
+            Aggiungi all'Ordine
           </Button>
         </div>
       </div>

@@ -24,11 +24,11 @@ export default function Checkout() {
 
   const handlePlaceOrder = () => {
     if (type === "delivery" && !address) {
-      toast({ title: "Address required", variant: "destructive" });
+      toast({ title: "Indirizzo obbligatorio", variant: "destructive" });
       return;
     }
     if (type === "takeaway" && !time) {
-      toast({ title: "Pickup time required", variant: "destructive" });
+      toast({ title: "Orario di ritiro obbligatorio", variant: "destructive" });
       return;
     }
 
@@ -41,11 +41,11 @@ export default function Checkout() {
       } 
     }, {
       onSuccess: (order) => {
-        toast({ title: "Order placed successfully!" });
+        toast({ title: "Ordine confermato!" });
         setLocation(`/orders/${order.id}`);
       },
       onError: (err) => {
-        toast({ title: "Failed to place order", description: err.message, variant: "destructive" });
+        toast({ title: "Ordine fallito", description: err.message, variant: "destructive" });
       }
     });
   };
@@ -53,9 +53,9 @@ export default function Checkout() {
   if (!cart || cart.items.length === 0) {
     return (
       <PageTransition className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center">
-        <h2 className="text-2xl font-serif font-bold mb-2">Cart is empty</h2>
+        <h2 className="text-2xl font-serif font-bold mb-2">Il carrello è vuoto</h2>
         <Link href="/menu">
-          <Button className="rounded-xl w-full max-w-sm h-12">Browse Menu</Button>
+          <Button className="rounded-xl w-full max-w-sm h-12">Sfoglia il Menù</Button>
         </Link>
       </PageTransition>
     );
@@ -67,31 +67,31 @@ export default function Checkout() {
         <Button variant="ghost" size="icon" onClick={() => window.history.back()} className="rounded-full">
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <h1 className="text-2xl font-serif font-bold">Checkout</h1>
+        <h1 className="text-2xl font-serif font-bold">Completa Ordine</h1>
       </div>
 
       <div className="space-y-6">
         <div className="bg-card rounded-2xl p-5 border border-border shadow-sm">
-          <h3 className="font-serif text-lg font-semibold mb-4">Order Type</h3>
+          <h3 className="font-serif text-lg font-semibold mb-4">Tipo di Ordine</h3>
           <RadioGroup defaultValue={type} onValueChange={(v: "delivery" | "takeaway") => setType(v)} className="flex gap-4">
             <div className={`flex-1 border rounded-xl p-4 flex items-center gap-2 cursor-pointer transition-colors ${type === 'delivery' ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted'}`} onClick={() => setType('delivery')}>
               <RadioGroupItem value="delivery" id="delivery" />
-              <Label htmlFor="delivery" className="cursor-pointer font-medium flex items-center gap-2"><MapPin className="w-4 h-4"/> Delivery</Label>
+              <Label htmlFor="delivery" className="cursor-pointer font-medium flex items-center gap-2"><MapPin className="w-4 h-4"/> Consegna</Label>
             </div>
             <div className={`flex-1 border rounded-xl p-4 flex items-center gap-2 cursor-pointer transition-colors ${type === 'takeaway' ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted'}`} onClick={() => setType('takeaway')}>
               <RadioGroupItem value="takeaway" id="takeaway" />
-              <Label htmlFor="takeaway" className="cursor-pointer font-medium flex items-center gap-2"><Clock className="w-4 h-4"/> Pickup</Label>
+              <Label htmlFor="takeaway" className="cursor-pointer font-medium flex items-center gap-2"><Clock className="w-4 h-4"/> Asporto</Label>
             </div>
           </RadioGroup>
         </div>
 
         {type === "delivery" ? (
           <div className="space-y-4 bg-card rounded-2xl p-5 border border-border shadow-sm">
-            <h3 className="font-serif text-lg font-semibold">Delivery Details</h3>
+            <h3 className="font-serif text-lg font-semibold">Dettagli Consegna</h3>
             <div className="space-y-2">
-              <Label>Address</Label>
+              <Label>Indirizzo</Label>
               <Input 
-                placeholder="Via Roma 123, 00100 Milano" 
+                placeholder="Via Roma 123, 47841 Cattolica (RN)" 
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 className="h-12 bg-muted/50 rounded-xl"
@@ -100,9 +100,9 @@ export default function Checkout() {
           </div>
         ) : (
           <div className="space-y-4 bg-card rounded-2xl p-5 border border-border shadow-sm">
-            <h3 className="font-serif text-lg font-semibold">Pickup Time</h3>
+            <h3 className="font-serif text-lg font-semibold">Orario di Ritiro</h3>
             <div className="space-y-2">
-              <Label>Time</Label>
+              <Label>Orario</Label>
               <Input 
                 type="time" 
                 value={time}
@@ -114,9 +114,9 @@ export default function Checkout() {
         )}
 
         <div className="space-y-4 bg-card rounded-2xl p-5 border border-border shadow-sm">
-          <h3 className="font-serif text-lg font-semibold">Notes for Kitchen</h3>
+          <h3 className="font-serif text-lg font-semibold">Note per la Cucina</h3>
           <Input 
-            placeholder="Any allergies or special requests?" 
+            placeholder="Allergie o richieste particolari?" 
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             className="h-12 bg-muted/50 rounded-xl"
@@ -124,20 +124,20 @@ export default function Checkout() {
         </div>
 
         <div className="bg-card rounded-2xl p-5 border border-border shadow-sm">
-          <h3 className="font-serif text-lg font-semibold mb-4">Payment Summary</h3>
+          <h3 className="font-serif text-lg font-semibold mb-4">Riepilogo Pagamento</h3>
           <div className="space-y-2 mb-4 text-sm">
             <div className="flex justify-between text-muted-foreground">
-              <span>Subtotal</span>
+              <span>Subtotale</span>
               <span>€{cart.subtotal.toFixed(2)}</span>
             </div>
             {type === "delivery" && (
               <div className="flex justify-between text-muted-foreground">
-                <span>Delivery</span>
+                <span>Consegna</span>
                 <span>€{cart.deliveryCost.toFixed(2)}</span>
               </div>
             )}
             <div className="flex justify-between font-bold text-lg pt-2 border-t border-border">
-              <span>Total</span>
+              <span>Totale</span>
               <span className="text-primary">€{(cart.subtotal + (type === "delivery" ? cart.deliveryCost : 0)).toFixed(2)}</span>
             </div>
           </div>
@@ -147,7 +147,7 @@ export default function Checkout() {
             onClick={handlePlaceOrder}
             disabled={createOrderMutation.isPending}
           >
-            {createOrderMutation.isPending ? "Processing..." : "Place Order"}
+            {createOrderMutation.isPending ? "Elaborazione..." : "Conferma Ordine"}
           </Button>
         </div>
       </div>

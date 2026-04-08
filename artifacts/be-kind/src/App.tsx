@@ -25,6 +25,13 @@ import Reservations from "@/pages/reservations";
 import NewReservation from "@/pages/new-reservation";
 import Loyalty from "@/pages/loyalty";
 import EditProfile from "@/pages/edit-profile";
+import AdminDashboard from "@/pages/admin/index";
+import AdminDishes from "@/pages/admin/dishes";
+import AdminDishForm from "@/pages/admin/dish-form";
+import AdminEvents from "@/pages/admin/events-list";
+import AdminEventForm from "@/pages/admin/event-form";
+import AdminProducts from "@/pages/admin/products-list";
+import AdminProductForm from "@/pages/admin/product-form";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +58,13 @@ function Router() {
         <Route path="/loyalty" component={Loyalty} />
         <Route path="/reservations" component={Reservations} />
         <Route path="/reservations/new" component={NewReservation} />
+        <Route path="/admin" component={AdminDashboard} />
+        <Route path="/admin/piatti" component={AdminDishes} />
+        <Route path="/admin/piatti/:id" component={AdminDishForm} />
+        <Route path="/admin/eventi" component={AdminEvents} />
+        <Route path="/admin/eventi/:id" component={AdminEventForm} />
+        <Route path="/admin/prodotti" component={AdminProducts} />
+        <Route path="/admin/prodotti/:id" component={AdminProductForm} />
         <Route component={NotFound} />
       </Switch>
     </MobileLayout>

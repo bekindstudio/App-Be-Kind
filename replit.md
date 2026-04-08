@@ -61,13 +61,24 @@
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - `pnpm --filter @workspace/api-server run dev` — run API server locally
 
+## Admin Panel
+
+- **Access**: Admin users (is_admin=true in users table) see "Pannello Admin" link on profile page
+- **Routes**: `/admin`, `/admin/piatti`, `/admin/piatti/:id`, `/admin/eventi`, `/admin/eventi/:id`, `/admin/prodotti`, `/admin/prodotti/:id`
+- **Backend**: `POST/PUT/DELETE /api/admin/dishes|events|products` with admin middleware (`requireAdmin`)
+- **Features**: Full CRUD for dishes (menu), events, and products (shop). Category dropdowns, image URL preview, toggle switches for visibility/featured/new arrival.
+- **Auth gate**: All admin API routes verify `isAdmin` flag on authenticated user. Frontend shows "Accesso Riservato" for non-admin users.
+
 ## Key Files
 
-- `lib/db/src/schema/users.ts` — Users table (email, googleId, loyalty, preferences)
+- `lib/db/src/schema/users.ts` — Users table (email, googleId, loyalty, preferences, isAdmin)
 - `artifacts/api-server/src/routes/auth.ts` — Auth routes (login, register, Google)
+- `artifacts/api-server/src/routes/admin.ts` — Admin CRUD routes (dishes, events, products)
 - `artifacts/api-server/src/routes/reservations.ts` — Reservation routes + Wix fallback
 - `artifacts/api-server/src/wix-bookings.ts` — Wix Table Reservations API wrapper
 - `artifacts/be-kind/src/pages/login.tsx` — Login page with Google Sign-In
+- `artifacts/be-kind/src/pages/admin/` — Admin panel pages (dashboard, forms, lists)
+- `artifacts/be-kind/src/hooks/use-admin.ts` — Admin hooks (queries + mutations)
 - `artifacts/be-kind/src/pages/new-reservation.tsx` — New reservation form
 - `artifacts/be-kind/src/pages/reservations.tsx` — Reservation list
 

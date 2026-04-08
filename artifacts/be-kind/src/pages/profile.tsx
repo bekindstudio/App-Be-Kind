@@ -2,7 +2,8 @@ import { PageTransition } from "@/components/page-transition";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/hooks/use-auth-store";
 import { useGetProfile, useGetLoyaltyBalance } from "@workspace/api-client-react";
-import { ArrowLeft, ChevronRight, LogOut, Settings, MapPin, CreditCard, Bell, User as UserIcon, Calendar, Package } from "lucide-react";
+import { ArrowLeft, ChevronRight, LogOut, Settings, MapPin, CreditCard, Bell, User as UserIcon, Calendar, Package, Shield } from "lucide-react";
+import { useAdminCheck } from "@/hooks/use-admin";
 import { Link, useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useLogout } from "@workspace/api-client-react";
@@ -26,6 +27,7 @@ export default function Profile() {
 
   const { data: profile, isLoading } = useGetProfile({ query: { enabled: !!token } });
   const { data: loyalty } = useGetLoyaltyBalance({ query: { enabled: !!token } });
+  const { data: adminCheck } = useAdminCheck();
   const logoutMutation = useLogout();
 
   if (!token) {
@@ -130,6 +132,21 @@ export default function Profile() {
             </div>
           </Link>
         </div>
+
+        {adminCheck?.isAdmin && (
+          <Link href="/admin">
+            <div className="bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20 rounded-2xl p-4 shadow-sm flex items-center gap-3 active-elevate">
+              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                <Shield className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <span className="font-serif font-semibold">Pannello Admin</span>
+                <p className="text-xs text-muted-foreground">Gestisci menù, eventi e bottega</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-primary" />
+            </div>
+          </Link>
+        )}
 
         <Button 
           variant="outline" 

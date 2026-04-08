@@ -12,6 +12,7 @@ import { eventsRouter } from "./events";
 import { loyaltyRouter } from "./loyalty";
 import { profileRouter } from "./profile";
 import { reviewsRouter } from "./reviews";
+import { adminRouter } from "./admin";
 
 const router: IRouter = Router();
 
@@ -28,5 +29,6 @@ router.use("/events", eventsRouter);
 router.use("/loyalty", loyaltyRouter);
 router.use("/profile", profileRouter);
 router.use("/reviews", reviewsRouter);
+router.use("/admin", adminRouter);
 
 export default router;

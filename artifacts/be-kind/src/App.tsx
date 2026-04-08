@@ -1,0 +1,75 @@
+import { Switch, Route, Router as WouterRouter } from "wouter";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import NotFound from "@/pages/not-found";
+import { MobileLayout } from "@/components/mobile-layout";
+import { AuthProvider } from "@/components/auth-provider";
+
+import Home from "@/pages/home";
+import Login from "@/pages/login";
+import Register from "@/pages/register";
+import Menu from "@/pages/menu";
+import DishDetail from "@/pages/dish-detail";
+import Cart from "@/pages/cart";
+import Checkout from "@/pages/checkout";
+import Orders from "@/pages/orders";
+import OrderDetail from "@/pages/order-detail";
+import Profile from "@/pages/profile";
+import Shop from "@/pages/shop";
+import ProductDetail from "@/pages/product-detail";
+import ShopCart from "@/pages/shop-cart";
+import Events from "@/pages/events";
+import EventDetail from "@/pages/event-detail";
+import Reservations from "@/pages/reservations";
+import NewReservation from "@/pages/new-reservation";
+import Loyalty from "@/pages/loyalty";
+import EditProfile from "@/pages/edit-profile";
+
+const queryClient = new QueryClient();
+
+function Router() {
+  return (
+    <MobileLayout>
+      <Switch>
+        <Route path="/" component={Home} />
+        <Route path="/login" component={Login} />
+        <Route path="/register" component={Register} />
+        <Route path="/menu" component={Menu} />
+        <Route path="/menu/:id" component={DishDetail} />
+        <Route path="/cart" component={Cart} />
+        <Route path="/order/checkout" component={Checkout} />
+        <Route path="/orders" component={Orders} />
+        <Route path="/orders/:id" component={OrderDetail} />
+        <Route path="/shop" component={Shop} />
+        <Route path="/shop/cart" component={ShopCart} />
+        <Route path="/shop/:id" component={ProductDetail} />
+        <Route path="/events" component={Events} />
+        <Route path="/events/:id" component={EventDetail} />
+        <Route path="/profile" component={Profile} />
+        <Route path="/profile/edit" component={EditProfile} />
+        <Route path="/loyalty" component={Loyalty} />
+        <Route path="/reservations" component={Reservations} />
+        <Route path="/reservations/new" component={NewReservation} />
+        <Route component={NotFound} />
+      </Switch>
+    </MobileLayout>
+  );
+}
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <WouterRouter base={import.meta.env.BASE_URL?.replace(/\/$/, "") || ""}>
+            <Router />
+          </WouterRouter>
+          <Toaster />
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+}
+
+export default App;

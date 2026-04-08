@@ -1,0 +1,112 @@
+import { PageTransition } from "@/components/page-transition";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useAuthStore } from "@/hooks/use-auth-store";
+import { useGetProfile, useUpdateProfile } from "@workspace/api-client-react";
+import { ArrowLeft, Save } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+
+export default function EditProfile() {
+  const token = useAuthStore((state) => state.token);
+  const { data: profile, isLoading } = useGetProfile({ query: { enabled: !!token } });
+  const updateProfileMutation = useUpdateProfile();
+  const { toast } = useToast();
+
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
+
+  useEffect(() => {
+    if (profile) {
+      setFirstName(profile.firstName);
+      setLastName(profile.lastName);
+      setPhone(profile.phone || "");
+    }
+  }, [profile]);
+
+  const handleSave = () => {
+    updateProfileMutation.mutate({
+      data: { firstName, lastName, phone }
+    }, {
+      onSuccess: () => {
+        toast({ title: "Profile updated" });
+        window.history.back();
+      },
+      onError: (err) => {
+        toast({ title: "Failed to update", description: err.message, variant: "destructive" });
+      }
+    });
+  };
+
+  if (isLoading || !profile) {
+    return (
+      <PageTransition className="min-h-full bg-background flex flex-col p-4 pb-24">
+        <div className="h-8 w-1/3 bg-muted animate-pulse rounded mb-8"></div>
+        <div className="space-y-4">
+          <div className="h-12 bg-muted animate-pulse rounded-xl"></div>
+          <div className="h-12 bg-muted animate-pulse rounded-xl"></div>
+          <div className="h-12 bg-muted animate-pulse rounded-xl"></div>
+        </div>
+      </PageTransition>
+    );
+  }
+
+  return (
+    <PageTransition className="min-h-full bg-background flex flex-col p-4 pb-24">
+      <div className="flex items-center gap-3 mb-6 pt-2">
+        <Button variant="ghost" size="icon" onClick={() => window.history.back()} className="rounded-full">
+          <ArrowLeft className="w-5 h-5" />
+        </Button>
+        <h1 className="text-2xl font-serif font-bold">Edit Profile</h1>
+      </div>
+
+      <div className="bg-card rounded-2xl p-5 border border-border shadow-sm space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="firstName">First Name</Label>
+          <Input 
+            id="firstName"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            className="h-12 bg-muted/50 rounded-xl"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="lastName">Last Name</Label>
+          <Input 
+            id="lastName"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            className="h-12 bg-muted/50 rounded-xl"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="phone">Phone</Label>
+          <Input 
+            id="phone"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="h-12 bg-muted/50 rounded-xl"
+          />
+        </div>
+        <div className="space-y-2 opacity-50">
+          <Label>Email (Cannot be changed)</Label>
+          <Input 
+            value={profile.email}
+            disabled
+            className="h-12 bg-muted/50 rounded-xl"
+          />
+        </div>
+      </div>
+
+      <Button 
+        className="w-full h-14 rounded-xl text-lg font-medium shadow-lg hover-elevate mt-6"
+        onClick={handleSave}
+        disabled={updateProfileMutation.isPending}
+      >
+        {updateProfileMutation.isPending ? "Saving..." : <><Save className="w-5 h-5 mr-2" /> Save Changes</>}
+      </Button>
+    </PageTransition>
+  );
+}

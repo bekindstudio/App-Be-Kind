@@ -1,0 +1,56 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "qU2DCvVYNDA5dK5nyWJKr"
+uri = "file://artifacts/be-kind/public/images/dish-pizza.png"
+type = "image"
+title = "Margherita pizza on rustic table"
+
+[[generated]]
+id = "GVfoszgcREFRtwcDcn7gl"
+uri = "file://artifacts/be-kind/public/images/dish-pasta.png"
+type = "image"
+title = "Pasta carbonara in ceramic bowl"
+
+[[generated]]
+id = "fqWpaADooaev1sDGKFUCO"
+uri = "file://artifacts/be-kind/public/images/dish-tiramisu.png"
+type = "image"
+title = "Tiramisu dessert on plate"
+
+[[generated]]
+id = "_gt7ClboSfM1Ipae3ZZI7"
+uri = "file://artifacts/be-kind/public/images/product-oil.png"
+type = "image"
+title = "Artisan olive oil bottle"
+
+[[generated]]
+id = "Yq9LlQRbNVSS_U_SHgAAx"
+uri = "file://artifacts/be-kind/public/images/event-wine.png"
+type = "image"
+title = "Wine tasting event setup"
+
+[[generated]]
+id = "mr077uE_Yuo_I7ehv_BGy"
+uri = "file://artifacts/be-kind/public/images/product-pasta.png"
+type = "image"
+title = "Artisan pasta product"
+
+[[generated]]
+id = "8nW5tqoKfhWfWyrnppe1Q"
+uri = "file://artifacts/be-kind/public/images/product-coffee.png"
+type = "image"
+title = "Coffee beans product"
+
+[[generated]]
+id = "n5eSQ1zqzBkcOi-IfzmNr"
+uri = "file://artifacts/be-kind/public/images/event-pasta.png"
+type = "image"
+title = "Pasta making class event"
+
+[[generated]]
+id = "DbdI2knrb7D76k1zGkyY1"
+uri = "file://artifacts/be-kind/public/images/dish-bruschetta.png"
+type = "image"
+title = "Bruschetta appetizer"

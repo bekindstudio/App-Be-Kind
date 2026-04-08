@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Be Kind"
+version = "1.0.0"
+id = "artifacts/be-kind"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22286
+
+[services.development]
+run = "pnpm --filter @workspace/be-kind run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/be-kind", "run", "build" ]
+publicDir = "artifacts/be-kind/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22286"
+BASE_PATH = "/"

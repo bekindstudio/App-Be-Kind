@@ -3,20 +3,43 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Be Kind - Full stack restaurant and lifestyle app API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: menu
+    description: Menu and dishes operations
+  - name: cart
+    description: Cart operations
+  - name: orders
+    description: Orders operations
+  - name: reservations
+    description: Table reservation operations
+  - name: products
+    description: E-commerce products
+  - name: shop-cart
+    description: Shop cart operations
+  - name: shop-orders
+    description: Shop orders operations
+  - name: events
+    description: Events and workshops
+  - name: loyalty
+    description: Loyalty points program
+  - name: profile
+    description: User profile operations
+  - name: reviews
+    description: Reviews and ratings
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +47,959 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # AUTH
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterBody"
+      responses:
+        "201":
+          description: User registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  # MENU
+  /menu/categories:
+    get:
+      operationId: getMenuCategories
+      tags: [menu]
+      summary: Get all menu categories
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MenuCategory"
+
+  /menu/dishes:
+    get:
+      operationId: getDishes
+      tags: [menu]
+      summary: Get all dishes with optional filters
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: dietary
+          in: query
+          schema:
+            type: string
+        - name: allergen
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of dishes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Dish"
+
+  /menu/dishes/featured:
+    get:
+      operationId: getFeaturedDishes
+      tags: [menu]
+      summary: Get featured dishes (daily specials, chef specials)
+      responses:
+        "200":
+          description: Featured dishes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Dish"
+
+  /menu/dishes/{id}:
+    get:
+      operationId: getDish
+      tags: [menu]
+      summary: Get a single dish by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Dish detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dish"
+
+  # CART (Restaurant)
+  /cart:
+    get:
+      operationId: getCart
+      tags: [cart]
+      summary: Get user's restaurant cart
+      responses:
+        "200":
+          description: Cart
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+    delete:
+      operationId: clearCart
+      tags: [cart]
+      summary: Clear the restaurant cart
+      responses:
+        "200":
+          description: Cart cleared
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /cart/items:
+    post:
+      operationId: addToCart
+      tags: [cart]
+      summary: Add item to restaurant cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddToCartBody"
+      responses:
+        "200":
+          description: Updated cart
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+
+  /cart/items/{id}:
+    put:
+      operationId: updateCartItem
+      tags: [cart]
+      summary: Update cart item quantity
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCartItemBody"
+      responses:
+        "200":
+          description: Updated cart
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+    delete:
+      operationId: removeCartItem
+      tags: [cart]
+      summary: Remove item from cart
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated cart
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+
+  # ORDERS
+  /orders:
+    get:
+      operationId: getOrders
+      tags: [orders]
+      summary: Get user's orders
+      responses:
+        "200":
+          description: List of orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Place an order (delivery or takeaway)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderBody"
+      responses:
+        "201":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{id}:
+    get:
+      operationId: getOrder
+      tags: [orders]
+      summary: Get order details and tracking
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Order detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{id}/reorder:
+    post:
+      operationId: reorder
+      tags: [orders]
+      summary: Repeat a previous order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: New order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  # RESERVATIONS
+  /reservations:
+    get:
+      operationId: getReservations
+      tags: [reservations]
+      summary: Get user's reservations
+      responses:
+        "200":
+          description: List of reservations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Reservation"
+    post:
+      operationId: createReservation
+      tags: [reservations]
+      summary: Create a table reservation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReservationBody"
+      responses:
+        "201":
+          description: Reservation created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reservation"
+
+  /reservations/availability:
+    get:
+      operationId: getAvailability
+      tags: [reservations]
+      summary: Get available time slots for a date
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: guests
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Available slots
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AvailabilityResponse"
+
+  /reservations/{id}:
+    get:
+      operationId: getReservation
+      tags: [reservations]
+      summary: Get reservation details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Reservation detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reservation"
+    put:
+      operationId: updateReservation
+      tags: [reservations]
+      summary: Modify a reservation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateReservationBody"
+      responses:
+        "200":
+          description: Updated reservation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reservation"
+    delete:
+      operationId: cancelReservation
+      tags: [reservations]
+      summary: Cancel a reservation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Reservation cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  # PRODUCTS (E-commerce)
+  /products:
+    get:
+      operationId: getProducts
+      tags: [products]
+      summary: Get all shop products with optional filters
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: sort
+          in: query
+          schema:
+            type: string
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+      responses:
+        "200":
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+  /products/categories:
+    get:
+      operationId: getProductCategories
+      tags: [products]
+      summary: Get product categories
+      responses:
+        "200":
+          description: Product categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductCategory"
+
+  /products/featured:
+    get:
+      operationId: getFeaturedProducts
+      tags: [products]
+      summary: Get new arrivals and best sellers
+      responses:
+        "200":
+          description: Featured products
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeaturedProducts"
+
+  /products/{id}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      summary: Get product details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Product detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+  # SHOP CART
+  /shop/cart:
+    get:
+      operationId: getShopCart
+      tags: [shop-cart]
+      summary: Get shop cart
+      responses:
+        "200":
+          description: Shop cart
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShopCart"
+    delete:
+      operationId: clearShopCart
+      tags: [shop-cart]
+      summary: Clear shop cart
+      responses:
+        "200":
+          description: Cart cleared
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /shop/cart/items:
+    post:
+      operationId: addToShopCart
+      tags: [shop-cart]
+      summary: Add product to shop cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddToShopCartBody"
+      responses:
+        "200":
+          description: Updated shop cart
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShopCart"
+
+  /shop/cart/items/{id}:
+    put:
+      operationId: updateShopCartItem
+      tags: [shop-cart]
+      summary: Update shop cart item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCartItemBody"
+      responses:
+        "200":
+          description: Updated shop cart
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShopCart"
+    delete:
+      operationId: removeShopCartItem
+      tags: [shop-cart]
+      summary: Remove item from shop cart
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated shop cart
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShopCart"
+
+  # SHOP ORDERS
+  /shop/orders:
+    get:
+      operationId: getShopOrders
+      tags: [shop-orders]
+      summary: Get user's shop orders
+      responses:
+        "200":
+          description: List of shop orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ShopOrder"
+    post:
+      operationId: createShopOrder
+      tags: [shop-orders]
+      summary: Place a shop order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateShopOrderBody"
+      responses:
+        "201":
+          description: Shop order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShopOrder"
+
+  /shop/orders/{id}:
+    get:
+      operationId: getShopOrder
+      tags: [shop-orders]
+      summary: Get shop order detail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Shop order detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShopOrder"
+
+  # EVENTS
+  /events:
+    get:
+      operationId: getEvents
+      tags: [events]
+      summary: Get all events
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: upcoming
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: List of events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+
+  /events/{id}:
+    get:
+      operationId: getEvent
+      tags: [events]
+      summary: Get event details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Event detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+
+  /events/{id}/register:
+    post:
+      operationId: registerForEvent
+      tags: [events]
+      summary: Register for an event
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Registration confirmed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventRegistration"
+
+  /events/{id}/cancel:
+    post:
+      operationId: cancelEventRegistration
+      tags: [events]
+      summary: Cancel event registration
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /events/my-registrations:
+    get:
+      operationId: getMyEventRegistrations
+      tags: [events]
+      summary: Get user's event registrations
+      responses:
+        "200":
+          description: My event registrations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EventRegistration"
+
+  # LOYALTY
+  /loyalty/balance:
+    get:
+      operationId: getLoyaltyBalance
+      tags: [loyalty]
+      summary: Get user's loyalty points balance and level
+      responses:
+        "200":
+          description: Loyalty balance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoyaltyBalance"
+
+  /loyalty/history:
+    get:
+      operationId: getLoyaltyHistory
+      tags: [loyalty]
+      summary: Get loyalty points transaction history
+      responses:
+        "200":
+          description: Loyalty history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LoyaltyTransaction"
+
+  /loyalty/redeem:
+    post:
+      operationId: redeemPoints
+      tags: [loyalty]
+      summary: Redeem loyalty points
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RedeemPointsBody"
+      responses:
+        "200":
+          description: Points redeemed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  # PROFILE
+  /profile:
+    get:
+      operationId: getProfile
+      tags: [profile]
+      summary: Get user profile
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+    put:
+      operationId: updateProfile
+      tags: [profile]
+      summary: Update user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileBody"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+
+  /profile/addresses:
+    get:
+      operationId: getAddresses
+      tags: [profile]
+      summary: Get saved delivery addresses
+      responses:
+        "200":
+          description: Addresses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Address"
+    post:
+      operationId: addAddress
+      tags: [profile]
+      summary: Add a delivery address
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddressBody"
+      responses:
+        "201":
+          description: Address added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Address"
+
+  /profile/addresses/{id}:
+    put:
+      operationId: updateAddress
+      tags: [profile]
+      summary: Update an address
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddressBody"
+      responses:
+        "200":
+          description: Updated address
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Address"
+    delete:
+      operationId: deleteAddress
+      tags: [profile]
+      summary: Delete an address
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /profile/dashboard:
+    get:
+      operationId: getProfileDashboard
+      tags: [profile]
+      summary: Get profile dashboard summary (points, orders, reservations)
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileDashboard"
+
+  # REVIEWS
+  /reviews:
+    post:
+      operationId: createReview
+      tags: [reviews]
+      summary: Create a review
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReviewBody"
+      responses:
+        "201":
+          description: Review created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+
+  /reviews/{targetType}/{targetId}:
+    get:
+      operationId: getReviews
+      tags: [reviews]
+      summary: Get reviews for a target (dish, event, order)
+      parameters:
+        - name: targetType
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: targetId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Review"
+
 components:
   schemas:
     HealthStatus:
@@ -31,6 +1007,793 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required: [message]
+
+    # AUTH
+    RegisterBody:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        phone:
+          type: string
+        dateOfBirth:
+          type: string
+          nullable: true
+        acceptedTerms:
+          type: boolean
+      required: [firstName, lastName, email, password, phone, acceptedTerms]
+
+    LoginBody:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required: [email, password]
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+      required: [token, user]
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        avatarUrl:
+          type: string
+          nullable: true
+        dateOfBirth:
+          type: string
+          nullable: true
+        loyaltyPoints:
+          type: integer
+        loyaltyLevel:
+          type: string
+        createdAt:
+          type: string
+      required: [id, email, firstName, lastName, phone, loyaltyPoints, loyaltyLevel, createdAt]
+
+    # MENU
+    MenuCategory:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        icon:
+          type: string
+        sortOrder:
+          type: integer
+      required: [id, name, slug, icon, sortOrder]
+
+    Dish:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        imageUrl:
+          type: string
+        categoryId:
+          type: integer
+        categoryName:
+          type: string
+        ingredients:
+          type: array
+          items:
+            type: string
+        allergens:
+          type: array
+          items:
+            type: string
+        dietaryTags:
+          type: array
+          items:
+            type: string
+        isAvailable:
+          type: boolean
+        isFeatured:
+          type: boolean
+        averageRating:
+          type: number
+          nullable: true
+        reviewCount:
+          type: integer
+        nutritionInfo:
+          type: object
+          nullable: true
+          additionalProperties: true
+      required: [id, name, description, price, categoryId, categoryName, ingredients, allergens, dietaryTags, isAvailable, isFeatured, reviewCount]
+
+    # CART
+    CartItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        dishId:
+          type: integer
+        dishName:
+          type: string
+        dishPrice:
+          type: number
+        imageUrl:
+          type: string
+          nullable: true
+        quantity:
+          type: integer
+        customizations:
+          type: string
+          nullable: true
+        subtotal:
+          type: number
+      required: [id, dishId, dishName, dishPrice, quantity, subtotal]
+
+    Cart:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CartItem"
+        subtotal:
+          type: number
+        deliveryCost:
+          type: number
+        total:
+          type: number
+        orderType:
+          type: string
+          nullable: true
+      required: [items, subtotal, deliveryCost, total]
+
+    AddToCartBody:
+      type: object
+      properties:
+        dishId:
+          type: integer
+        quantity:
+          type: integer
+        customizations:
+          type: string
+          nullable: true
+      required: [dishId, quantity]
+
+    UpdateCartItemBody:
+      type: object
+      properties:
+        quantity:
+          type: integer
+      required: [quantity]
+
+    # ORDERS
+    OrderItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        dishId:
+          type: integer
+        dishName:
+          type: string
+        quantity:
+          type: integer
+        unitPrice:
+          type: number
+        subtotal:
+          type: number
+        customizations:
+          type: string
+          nullable: true
+      required: [id, dishId, dishName, quantity, unitPrice, subtotal]
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        orderNumber:
+          type: string
+        type:
+          type: string
+          enum: [delivery, takeaway]
+        status:
+          type: string
+          enum: [received, preparing, ready, delivering, delivered, cancelled]
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        subtotal:
+          type: number
+        deliveryCost:
+          type: number
+        total:
+          type: number
+        deliveryAddress:
+          type: string
+          nullable: true
+        pickupTime:
+          type: string
+          nullable: true
+        estimatedDeliveryTime:
+          type: integer
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        discountCode:
+          type: string
+          nullable: true
+        pointsEarned:
+          type: integer
+        createdAt:
+          type: string
+      required: [id, orderNumber, type, status, items, subtotal, deliveryCost, total, pointsEarned, createdAt]
+
+    CreateOrderBody:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [delivery, takeaway]
+        deliveryAddress:
+          type: string
+          nullable: true
+        pickupTime:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        discountCode:
+          type: string
+          nullable: true
+        pointsToRedeem:
+          type: integer
+          nullable: true
+      required: [type]
+
+    # RESERVATIONS
+    Reservation:
+      type: object
+      properties:
+        id:
+          type: integer
+        date:
+          type: string
+          format: date
+        time:
+          type: string
+        guests:
+          type: integer
+        status:
+          type: string
+          enum: [pending, confirmed, cancelled, completed]
+        notes:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required: [id, date, time, guests, status, createdAt]
+
+    CreateReservationBody:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        time:
+          type: string
+        guests:
+          type: integer
+        notes:
+          type: string
+          nullable: true
+      required: [date, time, guests]
+
+    UpdateReservationBody:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        time:
+          type: string
+        guests:
+          type: integer
+        notes:
+          type: string
+          nullable: true
+
+    AvailabilityResponse:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        availableSlots:
+          type: array
+          items:
+            type: string
+        closedDay:
+          type: boolean
+      required: [date, availableSlots, closedDay]
+
+    # PRODUCTS (E-commerce)
+    ProductVariant:
+      type: object
+      properties:
+        type:
+          type: string
+        value:
+          type: string
+      required: [type, value]
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        imageUrl:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        categoryId:
+          type: integer
+        categoryName:
+          type: string
+        isAvailable:
+          type: boolean
+        isFeatured:
+          type: boolean
+        isNewArrival:
+          type: boolean
+        variants:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductVariant"
+        averageRating:
+          type: number
+          nullable: true
+        reviewCount:
+          type: integer
+      required: [id, name, description, price, categoryId, categoryName, isAvailable, isFeatured, isNewArrival, variants, reviewCount]
+
+    ProductCategory:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+      required: [id, name, slug]
+
+    FeaturedProducts:
+      type: object
+      properties:
+        newArrivals:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        bestSellers:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+      required: [newArrivals, bestSellers]
+
+    # SHOP CART
+    ShopCartItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        productId:
+          type: integer
+        productName:
+          type: string
+        productPrice:
+          type: number
+        imageUrl:
+          type: string
+          nullable: true
+        quantity:
+          type: integer
+        selectedVariants:
+          type: object
+          nullable: true
+          additionalProperties: true
+        subtotal:
+          type: number
+      required: [id, productId, productName, productPrice, quantity, subtotal]
+
+    ShopCart:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShopCartItem"
+        subtotal:
+          type: number
+        shippingCost:
+          type: number
+        total:
+          type: number
+      required: [items, subtotal, shippingCost, total]
+
+    AddToShopCartBody:
+      type: object
+      properties:
+        productId:
+          type: integer
+        quantity:
+          type: integer
+        selectedVariants:
+          type: object
+          nullable: true
+          additionalProperties: true
+      required: [productId, quantity]
+
+    # SHOP ORDERS
+    ShopOrderItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        productId:
+          type: integer
+        productName:
+          type: string
+        quantity:
+          type: integer
+        unitPrice:
+          type: number
+        subtotal:
+          type: number
+        selectedVariants:
+          type: object
+          nullable: true
+          additionalProperties: true
+      required: [id, productId, productName, quantity, unitPrice, subtotal]
+
+    ShopOrder:
+      type: object
+      properties:
+        id:
+          type: integer
+        orderNumber:
+          type: string
+        status:
+          type: string
+          enum: [pending, confirmed, shipped, delivered, cancelled]
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShopOrderItem"
+        subtotal:
+          type: number
+        shippingCost:
+          type: number
+        total:
+          type: number
+        shippingAddress:
+          type: string
+        trackingNumber:
+          type: string
+          nullable: true
+        pointsEarned:
+          type: integer
+        createdAt:
+          type: string
+      required: [id, orderNumber, status, items, subtotal, shippingCost, total, shippingAddress, pointsEarned, createdAt]
+
+    CreateShopOrderBody:
+      type: object
+      properties:
+        shippingAddress:
+          type: string
+        discountCode:
+          type: string
+          nullable: true
+        pointsToRedeem:
+          type: integer
+          nullable: true
+      required: [shippingAddress]
+
+    # EVENTS
+    Event:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        imageUrl:
+          type: string
+          nullable: true
+        date:
+          type: string
+        startTime:
+          type: string
+        endTime:
+          type: string
+        location:
+          type: string
+        category:
+          type: string
+        price:
+          type: number
+        maxParticipants:
+          type: integer
+        currentParticipants:
+          type: integer
+        isFull:
+          type: boolean
+        isFree:
+          type: boolean
+        isRegistered:
+          type: boolean
+      required: [id, title, description, date, startTime, endTime, location, category, price, maxParticipants, currentParticipants, isFull, isFree, isRegistered]
+
+    EventRegistration:
+      type: object
+      properties:
+        id:
+          type: integer
+        eventId:
+          type: integer
+        eventTitle:
+          type: string
+        eventDate:
+          type: string
+        qrCode:
+          type: string
+        status:
+          type: string
+          enum: [confirmed, cancelled, attended]
+        createdAt:
+          type: string
+      required: [id, eventId, eventTitle, eventDate, status, createdAt]
+
+    # LOYALTY
+    LoyaltyBalance:
+      type: object
+      properties:
+        points:
+          type: integer
+        level:
+          type: string
+          enum: [Bronze, Silver, Gold, Platinum]
+        nextLevel:
+          type: string
+          nullable: true
+        pointsToNextLevel:
+          type: integer
+          nullable: true
+        progressPercent:
+          type: number
+      required: [points, level, progressPercent]
+
+    LoyaltyTransaction:
+      type: object
+      properties:
+        id:
+          type: integer
+        points:
+          type: integer
+        type:
+          type: string
+          enum: [earned, redeemed]
+        reason:
+          type: string
+        createdAt:
+          type: string
+      required: [id, points, type, reason, createdAt]
+
+    RedeemPointsBody:
+      type: object
+      properties:
+        points:
+          type: integer
+      required: [points]
+
+    # PROFILE
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        avatarUrl:
+          type: string
+          nullable: true
+        dateOfBirth:
+          type: string
+          nullable: true
+        dietaryPreferences:
+          type: array
+          items:
+            type: string
+        allergyPreferences:
+          type: array
+          items:
+            type: string
+        notificationPreferences:
+          type: object
+          additionalProperties: true
+      required: [id, email, firstName, lastName, phone, dietaryPreferences, allergyPreferences, notificationPreferences]
+
+    UpdateProfileBody:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        dateOfBirth:
+          type: string
+          nullable: true
+        dietaryPreferences:
+          type: array
+          items:
+            type: string
+        allergyPreferences:
+          type: array
+          items:
+            type: string
+        notificationPreferences:
+          type: object
+          additionalProperties: true
+
+    Address:
+      type: object
+      properties:
+        id:
+          type: integer
+        label:
+          type: string
+        street:
+          type: string
+        city:
+          type: string
+        postalCode:
+          type: string
+        isDefault:
+          type: boolean
+      required: [id, label, street, city, postalCode, isDefault]
+
+    AddressBody:
+      type: object
+      properties:
+        label:
+          type: string
+        street:
+          type: string
+        city:
+          type: string
+        postalCode:
+          type: string
+        isDefault:
+          type: boolean
+      required: [label, street, city, postalCode, isDefault]
+
+    ProfileDashboard:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        loyaltyBalance:
+          $ref: "#/components/schemas/LoyaltyBalance"
+        recentOrders:
+          type: array
+          items:
+            $ref: "#/components/schemas/Order"
+        upcomingReservations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Reservation"
+        upcomingEvents:
+          type: array
+          items:
+            $ref: "#/components/schemas/EventRegistration"
+      required: [user, loyaltyBalance, recentOrders, upcomingReservations, upcomingEvents]
+
+    # REVIEWS
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        userName:
+          type: string
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        text:
+          type: string
+          nullable: true
+        targetType:
+          type: string
+        targetId:
+          type: integer
+        createdAt:
+          type: string
+      required: [id, userId, userName, rating, targetType, targetId, createdAt]
+
+    CreateReviewBody:
+      type: object
+      properties:
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        text:
+          type: string
+          nullable: true
+        targetType:
+          type: string
+        targetId:
+          type: integer
+      required: [rating, targetType, targetId]

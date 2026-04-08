@@ -1,0 +1,425 @@
+# PROMPT PER REPLIT AGENT — APP "BE KIND"
+
+Copia e incolla tutto il contenuto qui sotto nel campo di Replit Agent.
+
+---
+
+## PROMPT INIZIA QUI ⬇️
+
+---
+
+Crea un'applicazione web mobile-first chiamata **"Be Kind"** usando **React + TypeScript + Tailwind CSS** con backend **Node.js/Express** e database **PostgreSQL** (oppure **Supabase** se preferisci un setup più rapido). L'app deve essere una PWA installabile o comunque ottimizzata per mobile.
+
+**NOTA IMPORTANTE:** Ti fornirò separatamente gli screenshot per il design e i colori. Non inventare la UI — concentrati sulla struttura funzionale, le pagine, la logica e i contenuti. Usa un design placeholder pulito e minimale che poi adatteremo.
+
+---
+
+## 1. ARCHITETTURA GENERALE
+
+L'app ha **7 macro-moduli**:
+1. Autenticazione e Profilo Utente
+2. Ristorante e Menù Digitale
+3. Prenotazione Tavolo
+4. Ordini Delivery e Asporto (con tracking in tempo reale)
+5. E-Commerce (Shop Prodotti)
+6. Eventi e Workshop
+7. Programma Fedeltà "Be Kind Points"
+
+Stack consigliato:
+- **Frontend:** React 18+ con TypeScript, Tailwind CSS, React Router
+- **Backend:** Node.js con Express (o Next.js API Routes)
+- **Database:** PostgreSQL con Prisma ORM (oppure Supabase)
+- **Auth:** JWT con refresh token (oppure Supabase Auth)
+- **Pagamenti:** Stripe (integrazione checkout)
+- **Mappe:** Leaflet o Google Maps API (per tracking rider)
+- **Real-time:** WebSocket o Supabase Realtime (per tracking ordini)
+- **Storage immagini:** Cloudinary o Supabase Storage
+
+---
+
+## 2. MODULO AUTENTICAZIONE E PROFILO
+
+### Registrazione
+- Form con campi: nome, cognome, email, password, numero di telefono (obbligatori)
+- Campi opzionali: data di nascita, foto profilo, indirizzo di consegna predefinito
+- Social login: Google, Apple ID
+- Verifica email con codice OTP
+- Checkbox obbligatorio per accettazione GDPR e Termini e Condizioni
+
+### Login
+- Email + password
+- Social login (Google, Apple)
+- Biometrico (predisposizione per app nativa futura)
+- "Password dimenticata" con reset via email
+- Sessione persistente con JWT + refresh token
+
+### Profilo Utente (Dashboard)
+La pagina profilo deve mostrare:
+- Saldo punti fedeltà attuale e livello (Bronze/Silver/Gold/Platinum)
+- Barra di progresso verso il prossimo livello
+- Storico ordini (delivery + e-commerce) con possibilità di "Riordina"
+- Prenotazioni attive e passate
+- Eventi/workshop a cui l'utente è iscritto
+- Gestione indirizzi di consegna (multipli, con preferito)
+- Gestione metodi di pagamento salvati
+- Preferenze allergeni e dietetiche (vegano, vegetariano, senza glutine, ecc.)
+- Gestione notifiche (toggle per categoria: ordini, promozioni, eventi, fedeltà)
+- Sezione "Le mie recensioni"
+
+---
+
+## 3. MODULO RISTORANTE E MENÙ DIGITALE
+
+### Pagina Menù
+- Menù organizzato per **categorie navigabili** con tab/scroll orizzontale: Antipasti, Primi, Secondi, Contorni, Dolci, Bevande, Menu Speciali
+- **Ogni piatto mostra:**
+  - Foto ad alta risoluzione
+  - Nome del piatto
+  - Descrizione dettagliata degli ingredienti
+  - Prezzo
+  - Badge allergeni (icone: glutine, lattosio, frutta secca, ecc.)
+  - Etichette dietetiche (tag: Vegan, Vegetariano, Gluten Free)
+  - Valutazione media a stelle
+- Filtri rapidi: per allergeni e per preferenze dietetiche
+- Barra di ricerca testuale
+- Sezione "Piatti del Giorno" / "Specialità dello Chef" evidenziata in cima
+
+### Pagina Dettaglio Piatto
+- Galleria foto (carousel/swipeable)
+- Descrizione estesa
+- Lista ingredienti completa
+- Informazioni nutrizionali (se disponibili)
+- Valutazione media + numero recensioni
+- Sezione recensioni (altri utenti possono lasciare stelle + testo)
+- Pulsante "Aggiungi al Carrello" con selettore quantità e personalizzazioni (es. "senza cipolla", "doppia porzione")
+- Pulsante "Aggiungi ai Preferiti" (cuore)
+
+### Dati di esempio per il Menù
+Crea almeno **15 piatti di esempio** distribuiti nelle categorie, con dati realistici:
+
+**Antipasti:**
+- Bruschetta Be Kind — Pane tostato con pomodorini, basilico fresco e olio EVO — €7.00
+- Tagliere Misto — Selezione di salumi e formaggi locali con miele e mostarda — €14.00
+- Hummus della Casa — Crema di ceci con paprika affumicata, servito con pane pita caldo — €8.50
+
+**Primi:**
+- Paccheri alla Norma — Paccheri con melanzane, pomodoro San Marzano, ricotta salata e basilico — €13.00
+- Risotto ai Funghi Porcini — Riso Carnaroli mantecato con porcini freschi e parmigiano 24 mesi — €15.00
+- Spaghetti allo Scoglio — Spaghetti con frutti di mare misti, pomodorino e prezzemolo — €16.00
+
+**Secondi:**
+- Filetto di Branzino — Branzino al forno con patate croccanti e verdure di stagione — €18.00
+- Tagliata di Manzo — Controfiletto alla griglia con rucola, grana e riduzione di balsamico — €22.00
+- Burger Be Kind — Hamburger artigianale 180g con cheddar, bacon croccante, salsa speciale e patatine — €15.00
+
+**Contorni:**
+- Insalata Mista di Stagione — €5.00
+- Patate al Forno con Rosmarino — €6.00
+- Verdure Grigliate — Zucchine, melanzane, peperoni e carote alla griglia — €7.00
+
+**Dolci:**
+- Tiramisù Classico — Il nostro tiramisù con mascarpone fresco e cacao amaro — €7.50
+- Cheesecake ai Frutti di Bosco — Base croccante con crema cheesecake e coulis di frutti di bosco — €8.00
+
+**Bevande:**
+- Acqua Naturale/Frizzante 75cl — €2.50
+- Coca-Cola / Coca-Cola Zero 33cl — €3.00
+- Calice di Vino della Casa (Rosso/Bianco) — €5.00
+
+Tutti i piatti devono avere i relativi tag allergeni e dietetici (es. Hummus → Vegan, Gluten Free se con pane GF).
+
+---
+
+## 4. MODULO PRENOTAZIONE TAVOLO
+
+### Flusso Prenotazione
+1. **Selezione data:** calendario visivo che evidenzia giorni disponibili e non disponibili
+2. **Selezione orario:** slot da 30 minuti tra quelli disponibili (es. 12:00, 12:30, 13:00... configurabili da backend)
+3. **Numero coperti:** selettore da 1 a 12 (massimo configurabile)
+4. **Note:** campo testo per richieste speciali (seggiolone, allergie, occasione speciale)
+5. **Riepilogo:** schermata con tutti i dettagli + pulsante "Conferma Prenotazione"
+6. **Conferma:** notifica push + email con riepilogo
+
+### Funzionalità aggiuntive
+- Modifica prenotazione (entro 2 ore prima)
+- Cancellazione prenotazione (entro 2 ore prima)
+- Reminder automatico 3 ore prima via push notification
+- Storico prenotazioni (passate e future) nel profilo
+
+### Dati di esempio
+- Orari disponibili pranzo: 12:00 - 14:30
+- Orari disponibili cena: 19:00 - 22:30
+- Giorni di chiusura: Lunedì
+- Coperti massimi per slot: 40
+
+---
+
+## 5. MODULO ORDINI DELIVERY E ASPORTO
+
+### Flusso Ordine
+1. L'utente sceglie: **Delivery** o **Asporto**
+2. **Delivery:** inserimento/selezione indirizzo → verifica copertura area di consegna
+3. **Asporto:** selezione orario di ritiro tra slot disponibili
+4. Navigazione menù → aggiunta piatti al carrello con personalizzazioni
+5. **Carrello:** riepilogo articoli, quantità, prezzo unitario, subtotale, costi di consegna (solo delivery), totale
+6. Campo per codice sconto o riscatto punti fedeltà
+7. Campo note generali ordine
+8. **Checkout:** selezione metodo di pagamento → pagamento in-app (Stripe)
+9. **Conferma:** numero ordine univoco, tempo stimato consegna/preparazione
+
+### Tracking Ordine in Tempo Reale
+Dopo la conferma, schermata di tracking con **progress bar** che mostra gli stati:
+- ✅ Ordine ricevuto
+- 👨‍🍳 In preparazione
+- 📦 Pronto (per asporto: "Vieni a ritirare!")
+- 🛵 In consegna (solo delivery)
+- ✅ Consegnato
+
+**Per ordini delivery durante lo stato "In consegna":**
+- Mappa in tempo reale con posizione del rider (aggiornamento ogni 5-10 secondi)
+- ETA (tempo stimato di arrivo) aggiornato dinamicamente
+- Possibilità di contattare il rider (pulsante chat o telefono)
+
+Ogni cambio di stato genera una **notifica push**.
+
+### Post-Ordine
+- Notifica per lasciare recensione (stelle + testo opzionale)
+- Segnalazione problemi (piatto mancante, ordine errato, qualità) tramite form
+- Punti fedeltà accreditati automaticamente
+- Pulsante "Riordina" per rifare lo stesso ordine
+
+### Dati di esempio
+- Costo consegna: €2.50 (gratis sopra €25)
+- Tempo medio preparazione: 20-30 minuti
+- Tempo medio consegna: 15-25 minuti
+- Area coperta: raggio 5km dal ristorante
+- Ordine minimo delivery: €12.00
+
+---
+
+## 6. MODULO E-COMMERCE (SHOP PRODOTTI)
+
+### Catalogo Prodotti
+- Catalogo navigabile per categorie: Abbigliamento, Accessori, Food & Beverage, Gift Card, Merchandise, Edizioni Limitate
+- **Ogni prodotto mostra:** galleria foto (carousel), nome, descrizione, prezzo, disponibilità (in stock/esaurito), varianti (taglia, colore, formato)
+- Filtri: per categoria, prezzo, novità, più venduti, valutazione
+- Ordinamento: prezzo crescente/decrescente, novità, best seller
+- Barra di ricerca testuale
+- Sezioni "Novità" e "Best Seller" in evidenza
+- Wishlist: salvare prodotti per acquisto futuro
+
+### Checkout E-Commerce
+- Carrello **separato** dal carrello ristorante (sono due flussi distinti)
+- Selezione indirizzo di spedizione
+- Calcolo automatico costi di spedizione
+- Spedizione gratuita per ordini sopra €50
+- Applicazione codice sconto / riscatto punti fedeltà
+- Pagamento: carta, Apple Pay, Google Pay (via Stripe)
+- Conferma ordine con numero tracking spedizione
+- Gestione resi: form in-app, storico richieste nel profilo
+
+### Dati di esempio prodotti
+Crea almeno **8 prodotti di esempio:**
+
+**Abbigliamento:**
+- T-Shirt Be Kind Classic — T-shirt unisex in cotone organico con logo Be Kind ricamato — €29.90 — Taglie: S, M, L, XL
+- Felpa Be Kind Hoodie — Felpa con cappuccio, cotone felpato, logo stampato — €59.90 — Taglie: S, M, L, XL — Colori: Nero, Beige
+
+**Accessori:**
+- Tote Bag Be Kind — Borsa in tela 100% cotone naturale — €15.00
+- Cappellino Be Kind — Cappellino baseball ricamato, regolabile — €22.00 — Colori: Nero, Bianco, Verde
+
+**Food & Beverage:**
+- Olio EVO Be Kind — Olio extravergine d'oliva 500ml, produzione locale — €12.00
+- Miele Millefiori Be Kind — Miele artigianale 250g — €9.50
+
+**Gift Card:**
+- Gift Card Be Kind €25 — Spendibile su tutti i servizi (ristorante, shop, eventi) — €25.00
+- Gift Card Be Kind €50 — Spendibile su tutti i servizi — €50.00
+
+---
+
+## 7. MODULO EVENTI E WORKSHOP
+
+### Catalogo Eventi
+Lista eventi in formato **calendario + lista cronologica**. Ogni evento mostra:
+- Titolo
+- Data e ora
+- Luogo (indirizzo + mappa)
+- Durata
+- Descrizione dettagliata
+- Foto/immagine di copertina
+- Posti disponibili (con badge "Posti limitati" o "Esaurito")
+- Prezzo oppure "Gratuito"
+- Categoria/tag: Cucina, Benessere, Musica, Degustazione, Community
+
+### Iscrizione e Pagamento
+- Iscrizione con un tap
+- Pagamento in-app per eventi a pagamento (Stripe)
+- Conferma via push + email con **QR code** da esibire all'ingresso
+- Cancellazione iscrizione entro 48 ore (con rimborso automatico per eventi a pagamento)
+
+### Post-Evento
+- Notifica per lasciare recensione/feedback
+- Punti fedeltà accreditati dopo check-in (scansione QR code)
+- Galleria foto post-evento (caricata dallo staff)
+
+### Dati di esempio eventi
+Crea almeno **5 eventi di esempio:**
+
+1. **Workshop: Pasta Fresca Fatta in Casa** — Sabato 15 Marzo 2026, 10:00-13:00 — Cucina Be Kind — Impara a fare pasta fresca con lo Chef Marco — 15 posti — €35.00 — Tag: Cucina
+2. **Degustazione Vini Locali** — Venerdì 21 Marzo 2026, 19:00-21:00 — Sala Eventi Be Kind — Scopri i migliori vini delle Marche con il sommelier — 20 posti — €25.00 — Tag: Degustazione
+3. **Be Kind Music Night** — Sabato 29 Marzo 2026, 21:00-00:00 — Terrazza Be Kind — Live music con DJ set e aperitivo incluso — 50 posti — €15.00 — Tag: Musica
+4. **Yoga & Brunch** — Domenica 6 Aprile 2026, 09:00-12:00 — Giardino Be Kind — Sessione yoga seguita da brunch salutare — 25 posti — €30.00 — Tag: Benessere
+5. **Community Day: Pulizia Spiagge** — Sabato 12 Aprile 2026, 09:00-13:00 — Spiaggia di Portonovo — Giornata di volontariato + pranzo offerto da Be Kind — 40 posti — Gratuito — Tag: Community
+
+---
+
+## 8. MODULO PROGRAMMA FEDELTÀ "BE KIND POINTS"
+
+### Azioni che generano punti
+
+| Azione | Punti |
+|--------|-------|
+| Ordine delivery completato | 1 punto per ogni €1 speso |
+| Ordine asporto completato | 1 punto per ogni €1 speso |
+| Acquisto e-commerce completato | 1 punto per ogni €1 speso |
+| Prenotazione tavolo + check-in | 20 punti |
+| Recensione piatto | 10 punti |
+| Recensione ordine | 15 punti |
+| Recensione evento | 15 punti |
+| Partecipazione workshop/evento | 30 punti |
+| Invita un amico (referral) | 50 punti (quando l'amico fa il primo ordine) |
+| Compleanno | 100 punti bonus |
+| Primo ordine (benvenuto) | 50 punti bonus |
+
+Tutti i valori devono essere **configurabili dal pannello admin**.
+
+### Livelli Fedeltà
+
+| Livello | Soglia | Benefici |
+|---------|--------|----------|
+| Bronze | 0 – 499 punti | Accumulo punti standard |
+| Silver | 500 – 1.499 punti | Moltiplicatore punti x1.2, accesso anticipato eventi, sconto 5% |
+| Gold | 1.500 – 3.999 punti | Moltiplicatore x1.5, delivery gratuito, sconto 10%, evento esclusivo annuale |
+| Platinum | 4.000+ punti | Moltiplicatore x2, tutti i benefici Gold + regali esclusivi, priorità prenotazioni |
+
+### Riscatto Premi
+Catalogo premi in-app:
+- 200 punti → Sconto 10% sul prossimo ordine
+- 300 punti → Dessert omaggio
+- 500 punti → Spedizione gratuita e-commerce
+- 800 punti → Accesso gratuito a un workshop
+- 1.500 punti → Cena per 2 offerta dalla casa
+- 3.000 punti → Esperienza esclusiva (cena con lo Chef)
+
+### Interfaccia Punti
+- Widget in homepage con saldo punti e livello
+- Barra di progresso verso il prossimo livello
+- Sezione dedicata "Be Kind Points" con: saldo, livello, cronologia punti (guadagnati e spesi con dettaglio azione), catalogo premi riscattabili
+
+---
+
+## 9. HOMEPAGE
+
+La homepage è l'hub centrale dell'app. Deve contenere:
+- **Hero banner** rotativo (carousel): promozioni attive, nuovi eventi, piatti stagionali
+- **Azioni rapide** (4 pulsanti grandi): Ordina, Prenota Tavolo, Shop, Eventi
+- **Widget punti fedeltà**: saldo + livello + barra progresso
+- **Sezione "In Evidenza"**: contenuti dinamici (piatto del giorno, evento in arrivo, nuovo prodotto)
+- **Ultimi ordini**: per riordino rapido con un tap
+- **Sezione "Piatti del Giorno"**: 2-3 piatti evidenziati
+
+---
+
+## 10. ALTRE PAGINE
+
+### Chi Siamo
+Pagina con storia del brand Be Kind, mission, valori e team. Contenuto di esempio:
+"Be Kind nasce dall'idea che il cibo buono e la gentilezza possano cambiare il mondo, un piatto alla volta. Fondato nel 2024, il nostro ristorante è diventato un punto di riferimento per chi cerca un'esperienza gastronomica autentica, sostenibile e attenta alla comunità. Crediamo nella qualità degli ingredienti locali, nel rispetto per l'ambiente e nel potere di riunire le persone attorno a una tavola."
+
+### Contatti e Supporto
+- Indirizzo ristorante con mappa integrata (es. Via Roma 42, 60121 Ancona AN)
+- Orari: Martedì-Domenica 12:00-15:00 / 19:00-23:00, Lunedì chiuso
+- Telefono: +39 071 123 4567
+- Email: info@bekind.it
+- FAQ (almeno 5 domande frequenti)
+- Form di contatto/supporto
+
+### Legal
+- Termini e Condizioni
+- Informativa Privacy (GDPR)
+- Policy Resi e Rimborsi
+
+---
+
+## 11. SISTEMA NOTIFICHE
+
+Implementa un sistema di notifiche in-app (e predisposizione per push notification) con queste categorie:
+- **Ordini:** conferma, cambio stato, rider in arrivo, consegnato
+- **Prenotazioni:** conferma, reminder, modifiche
+- **Eventi:** nuovi eventi, reminder, richiesta recensione
+- **Fedeltà:** punti accreditati, nuovo livello, premi in scadenza, bonus compleanno
+- **Promozioni:** offerte, sconti, nuovi prodotti
+- **E-Commerce:** conferma ordine, spedizione, consegna
+
+Centro notifiche accessibile da icona campanella nella navbar con badge contatore.
+
+---
+
+## 12. PANNELLO ADMIN
+
+Crea un pannello di amministrazione web separato (route /admin) protetto da autenticazione admin, con:
+- **Dashboard:** KPI (ordini oggi, revenue giornaliera, utenti attivi, prenotazioni oggi)
+- **Gestione Menù:** CRUD piatti (nome, descrizione, foto, prezzo, allergeni, categoria, disponibilità)
+- **Gestione Prenotazioni:** lista prenotazioni, configurazione slot, gestione capacità
+- **Gestione Ordini:** dashboard ordini real-time, cambio stato, assegnazione rider
+- **Gestione E-Commerce:** CRUD prodotti, inventario, varianti, ordini, spedizioni
+- **Gestione Eventi:** CRUD eventi, monitoraggio iscrizioni, check-in
+- **Gestione Fedeltà:** configurazione punti per azione, livelli, catalogo premi
+- **Gestione Utenti:** lista utenti, storico, segmentazione per livello
+- **Gestione Promozioni:** codici sconto, push notification
+
+---
+
+## 13. STRUTTURA DATABASE
+
+Tabelle principali necessarie:
+- users (profilo, credenziali, preferenze)
+- addresses (indirizzi consegna/spedizione)
+- menu_categories
+- menu_items (piatti con foto, prezzo, allergeni, tag dietetici)
+- menu_item_variants (personalizzazioni)
+- reservations (prenotazioni tavolo)
+- orders (ordini delivery/asporto)
+- order_items
+- order_tracking (stati con timestamp)
+- products (e-commerce)
+- product_variants
+- product_orders
+- product_order_items
+- events
+- event_registrations
+- reviews (piatti, ordini, eventi)
+- loyalty_points (log punti: azione, punti, timestamp)
+- loyalty_levels
+- loyalty_rewards (catalogo premi)
+- reward_redemptions
+- notifications
+- promo_codes
+
+---
+
+## 14. NOTE FINALI
+
+- L'app deve essere **mobile-first** ma funzionare anche su desktop
+- Tutti i contenuti (menù, prodotti, eventi, premi) devono essere **gestibili dal pannello admin** senza toccare il codice
+- Il design sarà fornito separatamente tramite screenshot — per ora usa un design placeholder pulito
+- Lingua dell'app: **Italiano**
+- Valuta: **EUR (€)**
+- Tutte le date in formato italiano (GG/MM/AAAA)
+- L'app deve essere GDPR compliant
+
+---
+
+## PROMPT FINISCE QUI ⬆️

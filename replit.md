@@ -111,11 +111,12 @@
 ## QR Code Loyalty System
 
 - **User QR Code**: Each user gets a unique QR token (format: `BK-XXXXXXXXXXXX`) stored in `users.qr_token`, generated on first request to `GET /api/loyalty/qr-data`
-- **Admin Scanner**: `/admin/scanner` page with camera-based QR scanner (html5-qrcode) + manual code entry fallback
-- **Scan Flow**: Admin scans QR → `GET /api/admin/loyalty/scan/:qrToken` returns user info, stamps, recent history → admin can award points or stamps
+- **Per-Stamp QR Codes**: Each stamp in the collection has its own QR code encoding `{qrToken}:{stampId}` (e.g. `BK-ABC123:st1`). Users show these to the admin to unlock specific stamps.
+- **Admin Scanner**: `/admin/scanner` page with camera-based QR scanner (html5-qrcode) + manual code entry fallback. Includes scan debounce to prevent duplicate requests.
+- **Scan Flow**: Admin scans QR → `GET /api/admin/loyalty/scan/:qrToken` returns user info, stamps, recent history. If the code contains `:stampId`, the stamp is auto-awarded (using `ON CONFLICT DO NOTHING` for safety). Response includes `autoAwardResult` with success/failure info.
 - **Award Points**: `POST /api/admin/loyalty/award-points` with `{ userId, points, reason }`
 - **Award Stamps**: `POST /api/admin/loyalty/award-stamp` with `{ userId, stampId }`; 8 stamps available (st1-st8)
-- **Stamps Table**: `user_stamps` (id, user_id, stamp_id, awarded_by, created_at)
+- **Stamps Table**: `user_stamps` (id, user_id, stamp_id, awarded_by, created_at) with UNIQUE INDEX on `(user_id, stamp_id)`
 - **Frontend packages**: `qrcode.react` (QR display), `html5-qrcode` (camera scanner)
 
 ## Branding & Design System

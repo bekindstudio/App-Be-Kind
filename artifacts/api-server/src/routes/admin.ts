@@ -377,11 +377,44 @@ router.put("/users/:id/admin", async (req, res): Promise<void> => {
 });
 
 router.get("/loyalty/scan/:qrToken", async (req, res): Promise<void> => {
-  if (!await requireAdmin(req, res)) return;
-  const { qrToken } = req.params;
+  const adminId = await requireAdmin(req, res);
+  if (!adminId) return;
+  const rawToken = req.params.qrToken;
+
+  let qrToken = rawToken;
+  let stampToAward: string | null = null;
+
+  if (rawToken.includes(":")) {
+    const parts = rawToken.split(":");
+    qrToken = parts[0];
+    stampToAward = parts[1].toLowerCase();
+    if (!VALID_STAMP_IDS.includes(stampToAward)) {
+      stampToAward = null;
+    }
+  }
 
   const [user] = await db.select().from(usersTable).where(eq(usersTable.qrToken, qrToken)).limit(1);
   if (!user) { res.status(404).json({ error: "Utente non trovato" }); return; }
+
+  let autoAwardResult: { stampId: string; success: boolean; message: string } | null = null;
+
+  if (stampToAward) {
+    try {
+      const inserted = await db.insert(userStampsTable).values({
+        userId: user.id,
+        stampId: stampToAward,
+        awardedBy: adminId,
+      }).onConflictDoNothing().returning();
+
+      if (inserted.length > 0) {
+        autoAwardResult = { stampId: stampToAward, success: true, message: "Timbro assegnato con successo" };
+      } else {
+        autoAwardResult = { stampId: stampToAward, success: false, message: "Timbro già assegnato" };
+      }
+    } catch {
+      autoAwardResult = { stampId: stampToAward, success: false, message: "Timbro già assegnato" };
+    }
+  }
 
   const stamps = await db.select().from(userStampsTable).where(eq(userStampsTable.userId, user.id));
 
@@ -407,6 +440,7 @@ router.get("/loyalty/scan/:qrToken", async (req, res): Promise<void> => {
       reason: t.reason,
       createdAt: t.createdAt?.toISOString?.() ?? t.createdAt,
     })),
+    autoAwardResult,
   });
 });
 

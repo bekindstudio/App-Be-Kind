@@ -7,7 +7,7 @@ import { customFetch } from "@workspace/api-client-react/custom-fetch";
 import {
   ArrowLeft, Lock, QrCode, User, Star, Gift, Leaf, CheckCircle2,
   Coffee, Calendar, Bike, Flower2, ShoppingBag, Users, Smartphone, X,
-  Camera, Plus, Minus,
+  Camera, Plus, Minus, Sparkles,
 } from "lucide-react";
 import { Link } from "wouter";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -57,6 +57,7 @@ interface ScannedUser {
   loyaltyLevel: string;
   stamps: string[];
   recentHistory: { id: number; points: number; type: string; reason: string; createdAt: string }[];
+  autoAwardResult?: { stampId: string; success: boolean; message: string } | null;
 }
 
 type ScannerView = "scanner" | "user" | "manual";
@@ -75,6 +76,7 @@ export default function AdminScanner() {
   const [manualCode, setManualCode] = useState("");
 
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const isProcessingScan = useRef(false);
   const scannerContainerId = "qr-scanner-container";
 
   const stopScanner = useCallback(async () => {
@@ -91,13 +93,33 @@ export default function AdminScanner() {
   }, []);
 
   const lookupUser = useCallback(async (qrToken: string) => {
+    if (isProcessingScan.current) return;
+    isProcessingScan.current = true;
     try {
       const userData = await customFetch<ScannedUser>(`/api/admin/loyalty/scan/${encodeURIComponent(qrToken)}`);
       setScannedUser(userData);
       setView("user");
       await stopScanner();
+
+      if (userData.autoAwardResult) {
+        if (userData.autoAwardResult.success) {
+          const stampName = STAMPS.find(s => s.id === userData.autoAwardResult!.stampId)?.title || userData.autoAwardResult.stampId;
+          toast({
+            title: `Timbro "${stampName}" sbloccato!`,
+            description: `Assegnato automaticamente a ${userData.firstName}`,
+          });
+        } else {
+          toast({
+            title: "Timbro già presente",
+            description: userData.autoAwardResult.message,
+            variant: "destructive",
+          });
+        }
+      }
     } catch {
       toast({ title: "QR non valido", description: "Nessun utente trovato con questo codice.", variant: "destructive" });
+    } finally {
+      isProcessingScan.current = false;
     }
   }, [toast, stopScanner]);
 
@@ -175,24 +197,28 @@ export default function AdminScanner() {
   if (!token) {
     return (
       <PageTransition className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center">
-        <Lock className="w-16 h-16 text-muted-foreground mb-4" />
+        <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-6">
+          <Lock className="w-10 h-10 text-muted-foreground" />
+        </div>
         <h2 className="text-2xl font-serif font-bold mb-2">Accesso Riservato</h2>
-        <Link href="/login"><Button className="rounded-xl">Accedi</Button></Link>
+        <Link href="/login"><Button className="rounded-2xl h-12 px-8">Accedi</Button></Link>
       </PageTransition>
     );
   }
 
   if (adminLoading) {
-    return <PageTransition className="flex items-center justify-center min-h-[60vh]"><div className="animate-pulse h-40 w-40 bg-muted rounded-2xl" /></PageTransition>;
+    return <PageTransition className="flex items-center justify-center min-h-[60vh]"><div className="animate-pulse h-40 w-40 bg-muted rounded-3xl" /></PageTransition>;
   }
 
   if (!adminData?.isAdmin) {
     return (
       <PageTransition className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center">
-        <Lock className="w-16 h-16 text-muted-foreground mb-4" />
+        <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-6">
+          <Lock className="w-10 h-10 text-muted-foreground" />
+        </div>
         <h2 className="text-2xl font-serif font-bold mb-2">Accesso Riservato</h2>
         <p className="text-muted-foreground mb-6">Solo gli amministratori possono accedere.</p>
-        <Link href="/"><Button className="rounded-xl">Torna alla Home</Button></Link>
+        <Link href="/"><Button className="rounded-2xl h-12 px-8">Torna alla Home</Button></Link>
       </PageTransition>
     );
   }
@@ -213,28 +239,28 @@ export default function AdminScanner() {
         <div className="space-y-4 animate-in fade-in duration-300">
           {!scanning ? (
             <div className="flex flex-col items-center gap-6 py-8">
-              <div className="w-24 h-24 rounded-full bg-secondary text-white flex items-center justify-center">
-                <QrCode size={48} />
+              <div className="w-28 h-28 rounded-[28px] bg-gradient-to-br from-secondary to-secondary/80 text-white flex items-center justify-center shadow-xl">
+                <QrCode size={52} />
               </div>
               <div className="text-center">
                 <h3 className="font-serif font-bold text-xl mb-2">Pronto per la scansione</h3>
-                <p className="text-sm text-muted-foreground max-w-xs">Premi il pulsante per attivare la fotocamera e scansionare il QR code del cliente.</p>
+                <p className="text-sm text-muted-foreground max-w-xs">Scansiona il QR del cliente o il QR di un timbro specifico per sbloccarlo automaticamente.</p>
               </div>
-              <Button onClick={startScanner} className="rounded-2xl h-14 px-8 text-base gap-3">
+              <Button onClick={startScanner} className="rounded-2xl h-14 px-8 text-base gap-3 shadow-lg">
                 <Camera size={20} /> Apri Fotocamera
               </Button>
-              <button onClick={() => setView("manual")} className="text-sm text-primary font-medium">
+              <button onClick={() => setView("manual")} className="text-sm text-primary font-medium hover:underline">
                 Inserisci codice manualmente
               </button>
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="relative rounded-3xl overflow-hidden bg-black aspect-square max-h-[400px]">
+              <div className="relative rounded-[28px] overflow-hidden bg-black aspect-square max-h-[400px] shadow-xl">
                 <div id={scannerContainerId} className="w-full h-full" />
               </div>
               <div className="flex gap-3">
-                <Button variant="outline" onClick={stopScanner} className="flex-1 rounded-xl">Chiudi fotocamera</Button>
-                <Button variant="outline" onClick={() => { stopScanner(); setView("manual"); }} className="flex-1 rounded-xl">Codice manuale</Button>
+                <Button variant="outline" onClick={stopScanner} className="flex-1 rounded-2xl h-12">Chiudi fotocamera</Button>
+                <Button variant="outline" onClick={() => { stopScanner(); setView("manual"); }} className="flex-1 rounded-2xl h-12">Codice manuale</Button>
               </div>
             </div>
           )}
@@ -243,19 +269,19 @@ export default function AdminScanner() {
 
       {view === "manual" && (
         <div className="space-y-4 animate-in fade-in duration-300">
-          <div className="bg-card p-6 rounded-3xl border border-border shadow-sm">
-            <h3 className="font-serif font-bold text-lg mb-4">Inserisci Codice QR</h3>
-            <p className="text-sm text-muted-foreground mb-4">Inserisci il codice alfanumerico mostrato sotto il QR code del cliente.</p>
+          <div className="bg-card p-6 rounded-[28px] border border-border shadow-sm">
+            <h3 className="font-serif font-bold text-lg mb-2">Inserisci Codice QR</h3>
+            <p className="text-sm text-muted-foreground mb-4">Inserisci il codice alfanumerico. Per i timbri usa il formato BK-XXXX:st1</p>
             <input
               type="text"
               value={manualCode}
               onChange={(e) => setManualCode(e.target.value.toUpperCase())}
-              placeholder="BK-XXXXXXXXXXXX"
-              className="w-full bg-muted/50 border border-transparent focus:border-primary focus:bg-white rounded-xl py-3 px-4 text-sm outline-none transition-all placeholder:text-gray-300 text-foreground font-mono font-medium tracking-wider text-center"
+              placeholder="BK-XXXXXXXXXXXX o BK-XXXX:st1"
+              className="w-full bg-muted/50 border border-transparent focus:border-primary focus:bg-white rounded-2xl py-3 px-4 text-sm outline-none transition-all placeholder:text-gray-300 text-foreground font-mono font-medium tracking-wider text-center"
             />
             <div className="flex gap-3 mt-4">
-              <Button variant="outline" onClick={() => { setView("scanner"); setManualCode(""); }} className="flex-1 rounded-xl">Indietro</Button>
-              <Button onClick={handleManualLookup} disabled={!manualCode.trim()} className="flex-1 rounded-xl">Cerca</Button>
+              <Button variant="outline" onClick={() => { setView("scanner"); setManualCode(""); }} className="flex-1 rounded-2xl h-12">Indietro</Button>
+              <Button onClick={handleManualLookup} disabled={!manualCode.trim()} className="flex-1 rounded-2xl h-12">Cerca</Button>
             </div>
           </div>
         </div>
@@ -263,11 +289,11 @@ export default function AdminScanner() {
 
       {view === "user" && scannedUser && (
         <div className="space-y-4 animate-in fade-in duration-300">
-          <div className="bg-gradient-to-br from-secondary to-secondary/80 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
+          <div className="bg-gradient-to-br from-secondary via-secondary/90 to-secondary/70 rounded-[28px] p-6 text-white shadow-xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-white/8 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl" />
 
-            <div className="flex items-center gap-4 mb-4 relative z-10">
-              <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold">
+            <div className="flex items-center gap-4 mb-5 relative z-10">
+              <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl font-bold shadow-lg">
                 {scannedUser.firstName.charAt(0)}{scannedUser.lastName.charAt(0)}
               </div>
               <div>
@@ -278,31 +304,45 @@ export default function AdminScanner() {
             </div>
 
             <div className="flex gap-3 relative z-10">
-              <div className="flex-1 bg-white/15 backdrop-blur-md rounded-xl p-3 text-center">
+              <div className="flex-1 bg-white/15 backdrop-blur-md rounded-2xl p-3 text-center">
                 <p className="text-2xl font-bold">{scannedUser.loyaltyPoints}</p>
-                <p className="text-[10px] text-white/70 uppercase tracking-wider">Punti</p>
+                <p className="text-[10px] text-white/60 uppercase tracking-widest font-medium">Punti</p>
               </div>
-              <div className="flex-1 bg-white/15 backdrop-blur-md rounded-xl p-3 text-center">
+              <div className="flex-1 bg-white/15 backdrop-blur-md rounded-2xl p-3 text-center">
                 <p className="text-lg font-bold flex items-center justify-center gap-1">
                   {LEVEL_EMOJI[scannedUser.loyaltyLevel] || "🌱"} {LEVEL_LABELS[scannedUser.loyaltyLevel] || scannedUser.loyaltyLevel}
                 </p>
-                <p className="text-[10px] text-white/70 uppercase tracking-wider">Livello</p>
+                <p className="text-[10px] text-white/60 uppercase tracking-widest font-medium">Livello</p>
               </div>
-              <div className="flex-1 bg-white/15 backdrop-blur-md rounded-xl p-3 text-center">
+              <div className="flex-1 bg-white/15 backdrop-blur-md rounded-2xl p-3 text-center">
                 <p className="text-2xl font-bold">{scannedUser.stamps.length}</p>
-                <p className="text-[10px] text-white/70 uppercase tracking-wider">Timbri</p>
+                <p className="text-[10px] text-white/60 uppercase tracking-widest font-medium">Timbri</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-card p-5 rounded-3xl border border-border shadow-sm">
+          {scannedUser.autoAwardResult?.success && (
+            <div className="bg-secondary/10 border border-secondary/20 p-4 rounded-2xl flex items-center gap-3 animate-in slide-in-from-top duration-300">
+              <div className="w-10 h-10 rounded-2xl bg-secondary text-white flex items-center justify-center shadow-md">
+                <Sparkles size={20} />
+              </div>
+              <div>
+                <p className="font-bold text-sm text-secondary">Timbro sbloccato automaticamente!</p>
+                <p className="text-xs text-muted-foreground">
+                  {STAMPS.find(s => s.id === scannedUser.autoAwardResult!.stampId)?.title || scannedUser.autoAwardResult!.stampId}
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="bg-card p-5 rounded-[28px] border border-border shadow-sm">
             <h3 className="font-serif font-bold text-lg mb-4 flex items-center gap-2">
               <Gift size={20} className="text-primary" /> Assegna Punti
             </h3>
             <div className="flex items-center justify-center gap-4 mb-4">
               <button
                 onClick={() => setPointsToAward(Math.max(1, pointsToAward - 10))}
-                className="w-10 h-10 rounded-full bg-muted flex items-center justify-center active:scale-95 transition-transform"
+                className="w-11 h-11 rounded-2xl bg-muted flex items-center justify-center active:scale-95 transition-transform hover:bg-muted/80"
               >
                 <Minus size={18} />
               </button>
@@ -315,7 +355,7 @@ export default function AdminScanner() {
               />
               <button
                 onClick={() => setPointsToAward(pointsToAward + 10)}
-                className="w-10 h-10 rounded-full bg-secondary text-white flex items-center justify-center active:scale-95 transition-transform"
+                className="w-11 h-11 rounded-2xl bg-gradient-to-br from-secondary to-secondary/80 text-white flex items-center justify-center active:scale-95 transition-transform shadow-md"
               >
                 <Plus size={18} />
               </button>
@@ -327,7 +367,7 @@ export default function AdminScanner() {
                   key={v}
                   onClick={() => setPointsToAward(v)}
                   className={`px-4 py-2 rounded-xl text-xs font-bold shrink-0 transition-colors ${
-                    pointsToAward === v ? "bg-primary text-white" : "bg-muted text-foreground"
+                    pointsToAward === v ? "bg-primary text-white shadow-md" : "bg-muted text-foreground hover:bg-muted/80"
                   }`}
                 >
                   {v} pt
@@ -340,19 +380,19 @@ export default function AdminScanner() {
               value={awardReason}
               onChange={(e) => setAwardReason(e.target.value)}
               placeholder="Motivo (es. pranzo, brunch...)"
-              className="w-full bg-muted/50 border border-transparent focus:border-primary focus:bg-white rounded-xl py-3 px-4 text-sm outline-none transition-all placeholder:text-gray-300 text-foreground font-medium mb-4"
+              className="w-full bg-muted/50 border border-transparent focus:border-primary focus:bg-white rounded-2xl py-3 px-4 text-sm outline-none transition-all placeholder:text-gray-300 text-foreground font-medium mb-4"
             />
 
             <Button
               onClick={handleAwardPoints}
               disabled={awarding || pointsToAward <= 0}
-              className="w-full h-12 rounded-xl text-base"
+              className="w-full h-12 rounded-2xl text-base font-bold shadow-md"
             >
               {awarding ? "Assegnazione..." : `Assegna ${pointsToAward} Punti`}
             </Button>
           </div>
 
-          <div className="bg-card p-5 rounded-3xl border border-border shadow-sm">
+          <div className="bg-card p-5 rounded-[28px] border border-border shadow-sm">
             <h3 className="font-serif font-bold text-lg mb-4 flex items-center gap-2">
               <Leaf size={20} className="text-secondary" /> Assegna Timbri
             </h3>
@@ -364,15 +404,19 @@ export default function AdminScanner() {
                     key={stamp.id}
                     onClick={() => !isEarned && handleAwardStamp(stamp.id)}
                     disabled={isEarned}
-                    className={`aspect-square rounded-2xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 ${
+                    className={`aspect-square rounded-[18px] flex flex-col items-center justify-center gap-1.5 transition-all active:scale-90 relative ${
                       isEarned
-                        ? "bg-secondary text-white shadow-md"
-                        : "bg-muted/50 border border-dashed border-border text-muted-foreground hover:bg-secondary/10 hover:border-secondary/30"
+                        ? "bg-gradient-to-br from-secondary to-secondary/80 text-white shadow-lg"
+                        : "bg-muted/40 border border-dashed border-border text-muted-foreground hover:bg-secondary/10 hover:border-secondary/30"
                     }`}
                   >
-                    {isEarned && <CheckCircle2 size={14} className="absolute" />}
+                    {isEarned && (
+                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-md">
+                        <CheckCircle2 size={14} className="text-secondary" />
+                      </div>
+                    )}
                     {getIcon(stamp.icon, 18)}
-                    <span className="text-[9px] font-bold leading-none">{stamp.title}</span>
+                    <span className="text-[8px] font-bold leading-none px-1 text-center">{stamp.title}</span>
                   </button>
                 );
               })}
@@ -393,7 +437,7 @@ export default function AdminScanner() {
                         {new Date(item.createdAt).toLocaleDateString("it-IT", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                       </p>
                     </div>
-                    <span className={`font-bold ${item.type === "earned" ? "text-secondary" : "text-primary"}`}>
+                    <span className={`font-bold text-sm px-2.5 py-1 rounded-lg ${item.type === "earned" ? "text-secondary bg-secondary/10" : "text-primary bg-primary/10"}`}>
                       {item.type === "earned" ? "+" : "-"}{item.points} pt
                     </span>
                   </div>
@@ -405,7 +449,7 @@ export default function AdminScanner() {
           <Button
             variant="outline"
             onClick={() => { setScannedUser(null); setView("scanner"); }}
-            className="w-full rounded-xl h-12"
+            className="w-full rounded-2xl h-12 font-bold"
           >
             <QrCode size={16} className="mr-2" /> Scansiona un altro QR
           </Button>

@@ -40,12 +40,11 @@ export default function Register() {
 
   const handleGoogleCredential = useCallback(async (response: any) => {
     try {
-      const res = await customFetch("/api/auth/google", {
+      const data = await customFetch<{ token: string; user: any }>("/api/auth/google", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ credential: response.credential }),
       });
-      const data = await res.json();
       if (data.token) {
         setToken(data.token);
         toast({ title: "Benvenuto in Be Kind!" });

@@ -125,10 +125,21 @@ router.post("/google", async (req, res): Promise<void> => {
       return;
     }
     const googleUser = await verifyRes.json() as any;
-    const { sub: googleId, email, given_name, family_name, picture } = googleUser;
+    const { sub: googleId, email, given_name, family_name, picture, email_verified, aud, iss } = googleUser;
 
-    if (!email) {
-      res.status(400).json({ error: "Google account has no email" });
+    const expectedClientId = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID;
+    if (expectedClientId && aud !== expectedClientId) {
+      res.status(401).json({ error: "Token audience mismatch" });
+      return;
+    }
+
+    if (iss !== "accounts.google.com" && iss !== "https://accounts.google.com") {
+      res.status(401).json({ error: "Invalid token issuer" });
+      return;
+    }
+
+    if (!email || email_verified === "false") {
+      res.status(400).json({ error: "Google account email not verified" });
       return;
     }
 

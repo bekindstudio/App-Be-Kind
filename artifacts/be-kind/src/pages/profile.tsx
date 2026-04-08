@@ -2,21 +2,19 @@ import { PageTransition } from "@/components/page-transition";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/hooks/use-auth-store";
 import { useGetProfile, useGetLoyaltyBalance } from "@workspace/api-client-react";
-import { ArrowLeft, ChevronRight, LogOut, Settings, MapPin, CreditCard, Bell, User as UserIcon, Calendar, Package, Shield } from "lucide-react";
+import { ChevronRight, LogOut, User as UserIcon, Calendar, Package, Shield, Star, CreditCard, Settings, HelpCircle } from "lucide-react";
 import { useAdminCheck } from "@/hooks/use-admin";
 import { Link, useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useLogout } from "@workspace/api-client-react";
 
 const LEVEL_LABELS: Record<string, string> = {
-  Seed: "Seme",
-  Sprout: "Germoglio",
-  Bloom: "Fiore",
-  Tree: "Albero",
-  Bronze: "Bronzo",
-  Silver: "Argento",
-  Gold: "Oro",
-  Platinum: "Platino",
+  Seed: "Seme", Sprout: "Germoglio", Bloom: "Fiore", Tree: "Albero",
+  Bronze: "Seme", Silver: "Germoglio", Gold: "Fiore", Platinum: "Albero",
+};
+const LEVEL_EMOJI: Record<string, string> = {
+  Seed: "🌱", Sprout: "🌿", Bloom: "🌸", Tree: "🌳",
+  Bronze: "🌱", Silver: "🌿", Gold: "🌸", Platinum: "🌳",
 };
 
 export default function Profile() {
@@ -53,89 +51,80 @@ export default function Profile() {
     });
   };
 
+  const menuItems = [
+    { icon: UserIcon, label: "Il mio profilo", href: "/profile/edit" },
+    { icon: Package, label: "I miei ordini", href: "/orders" },
+    { icon: Calendar, label: "Le mie prenotazioni", href: "/reservations" },
+    { icon: CreditCard, label: "Metodi di pagamento", href: "/profile/edit" },
+    { icon: Settings, label: "Impostazioni", href: "/profile/edit" },
+    { icon: HelpCircle, label: "Aiuto & Supporto", href: "/profile/edit" },
+  ];
+
   return (
-    <PageTransition className="min-h-full bg-background flex flex-col pb-24">
-      <div className="bg-primary/5 pt-12 pb-6 px-4 rounded-b-[2.5rem] mb-6">
+    <PageTransition className="flex flex-col min-h-full bg-background pb-24">
+      <div className="px-6 pt-12 pb-6 bg-gradient-to-r from-[#FFFBF5] to-white border-b border-gray-50">
         {isLoading ? (
           <div className="flex items-center gap-4 animate-pulse">
-            <div className="w-16 h-16 rounded-full bg-muted"></div>
+            <div className="w-16 h-16 rounded-full bg-muted" />
             <div className="space-y-2">
-              <div className="h-6 w-32 bg-muted rounded"></div>
-              <div className="h-4 w-24 bg-muted rounded"></div>
+              <div className="h-6 w-32 bg-muted rounded" />
+              <div className="h-4 w-24 bg-muted rounded" />
             </div>
           </div>
         ) : profile ? (
           <div className="flex items-center gap-4">
-            <div className="w-20 h-20 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-3xl font-serif font-bold shrink-0">
+            <div className="w-16 h-16 rounded-full bg-secondary/10 flex items-center justify-center text-secondary font-bold text-xl shrink-0">
               {profile.firstName[0]}{profile.lastName[0]}
             </div>
             <div>
-              <h1 className="text-2xl font-serif font-bold">{profile.firstName} {profile.lastName}</h1>
-              <p className="text-muted-foreground">{profile.email}</p>
+              <p className="font-bold text-foreground text-lg">{profile.firstName} {profile.lastName}</p>
+              {loyalty && (
+                <p className="text-sm text-muted-foreground">
+                  {LEVEL_LABELS[loyalty.level] || loyalty.level} {LEVEL_EMOJI[loyalty.level] || ''} ({loyalty.points} pt)
+                </p>
+              )}
             </div>
           </div>
         ) : null}
       </div>
 
-      <div className="px-4 flex flex-col gap-6">
+      <div className="px-4 flex flex-col gap-4 pt-4">
         {loyalty && (
           <Link href="/loyalty">
-            <div className="bg-card border border-border rounded-2xl p-5 shadow-sm active-elevate flex justify-between items-center">
-              <div>
-                <div className="text-sm text-muted-foreground mb-1">Punti Fedeltà</div>
-                <div className="text-3xl font-bold text-primary">{loyalty.points}</div>
-              </div>
-              <div className="text-right">
-                <div className="inline-block px-3 py-1 bg-secondary/10 text-secondary rounded-full text-sm font-semibold mb-1">
-                  Membro {LEVEL_LABELS[loyalty.level] || loyalty.level}
+            <div className="bg-gradient-to-br from-[#4A6741] to-[#2C4A32] rounded-3xl p-5 text-white shadow-soft active:scale-[0.98] transition-transform cursor-pointer relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
+              <div className="flex justify-between items-center relative z-10">
+                <div>
+                  <p className="text-white/70 text-xs font-bold uppercase tracking-wider">Punti Fedeltà</p>
+                  <p className="text-3xl font-bold">{loyalty.points}</p>
                 </div>
-                <div className="text-xs text-muted-foreground flex items-center justify-end gap-1">
-                  Vedi premi <ChevronRight className="w-3 h-3" />
+                <div className="flex items-center gap-2 text-white/80 text-sm">
+                  <Star size={16} fill="currentColor" />
+                  <span className="font-medium">Vedi premi</span>
+                  <ChevronRight size={16} />
                 </div>
               </div>
             </div>
           </Link>
         )}
 
-        <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
-          <Link href="/profile/edit">
-            <div className="flex items-center justify-between p-4 border-b border-border active-elevate">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-foreground">
-                  <UserIcon className="w-5 h-5" />
+        <div className="bg-white rounded-3xl overflow-hidden shadow-soft">
+          {menuItems.map((item, idx) => (
+            <Link key={idx} href={item.href}>
+              <div className={`flex items-center justify-between px-5 py-4 text-sm text-gray-600 hover:bg-background hover:text-secondary transition-colors group active:bg-background/80 ${idx < menuItems.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                <div className="flex items-center gap-3">
+                  <item.icon size={18} className="text-gray-400 group-hover:text-primary transition-colors" />
+                  <span className="font-medium">{item.label}</span>
                 </div>
-                <span className="font-medium">Informazioni Personali</span>
+                <ChevronRight size={14} className="text-gray-300 group-hover:text-primary" />
               </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground" />
-            </div>
-          </Link>
-          <Link href="/reservations">
-            <div className="flex items-center justify-between p-4 border-b border-border active-elevate">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-foreground">
-                  <Calendar className="w-5 h-5" />
-                </div>
-                <span className="font-medium">Le Mie Prenotazioni</span>
-              </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground" />
-            </div>
-          </Link>
-          <Link href="/orders">
-            <div className="flex items-center justify-between p-4 active-elevate">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-foreground">
-                  <Package className="w-5 h-5" />
-                </div>
-                <span className="font-medium">Storico Ordini</span>
-              </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground" />
-            </div>
-          </Link>
+            </Link>
+          ))}
         </div>
 
         {adminCheck?.isAdmin && (
           <Link href="/admin">
-            <div className="bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20 rounded-2xl p-4 shadow-sm flex items-center gap-3 active-elevate">
+            <div className="bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20 rounded-3xl p-4 shadow-soft flex items-center gap-3 active:scale-[0.98] transition-transform">
               <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
                 <Shield className="w-5 h-5" />
               </div>
@@ -148,14 +137,15 @@ export default function Profile() {
           </Link>
         )}
 
-        <Button 
-          variant="outline" 
-          className="w-full h-14 rounded-2xl text-destructive hover:text-destructive hover:bg-destructive/10"
-          onClick={handleLogout}
-        >
-          <LogOut className="w-5 h-5 mr-2" />
-          Esci
-        </Button>
+        <div className="bg-white rounded-3xl overflow-hidden shadow-soft">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-5 py-4 text-sm text-red-500 hover:bg-red-50 transition-colors font-medium active:bg-red-100"
+          >
+            <LogOut size={18} />
+            Esci
+          </button>
+        </div>
       </div>
     </PageTransition>
   );

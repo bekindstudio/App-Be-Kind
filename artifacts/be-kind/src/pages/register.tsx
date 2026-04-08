@@ -1,12 +1,9 @@
 import { PageTransition } from "@/components/page-transition";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/hooks/use-auth-store";
 import { useToast } from "@/hooks/use-toast";
 import { useRegister } from "@workspace/api-client-react";
-import { ArrowLeft } from "lucide-react";
+import { ChevronLeft, Mail, Lock, Phone } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { customFetch } from "@workspace/api-client-react/custom-fetch";
@@ -20,7 +17,7 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
-  
+
   const [, setLocation] = useLocation();
   const setToken = useAuthStore((state) => state.setToken);
   const { toast } = useToast();
@@ -87,15 +84,15 @@ export default function Register() {
   };
 
   return (
-    <PageTransition className="min-h-screen bg-background flex flex-col p-6">
-      <div className="mb-6">
-        <Button variant="ghost" size="icon" onClick={() => window.history.back()} className="rounded-full">
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
+    <PageTransition className="flex flex-col min-h-screen bg-background">
+      <div className="px-6 pt-12 pb-4">
+        <button onClick={() => window.history.back()} className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-soft text-secondary active:scale-95 transition-transform">
+          <ChevronLeft size={24} />
+        </button>
       </div>
-      
-      <div className="flex-1 flex flex-col pb-12">
-        <h1 className="text-4xl font-serif font-bold mb-2">Unisciti a noi.</h1>
+
+      <div className="flex-1 flex flex-col px-6 pb-12">
+        <h1 className="text-4xl font-serif font-bold text-foreground mb-2">Unisciti a noi.</h1>
         <p className="text-muted-foreground mb-8">Crea un account per diventare un cliente abituale.</p>
 
         {GOOGLE_CLIENT_ID ? (
@@ -111,80 +108,88 @@ export default function Register() {
             </div>
           </>
         ) : null}
-        
+
         <form onSubmit={onSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="firstName">Nome</Label>
-              <Input 
-                id="firstName" 
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                className="rounded-xl bg-muted/50 border-transparent focus-visible:border-primary"
-                required 
-              />
+          <div className="bg-white p-5 rounded-3xl shadow-soft space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-500 ml-1">Nome</label>
+                <input
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="Mario"
+                  className="w-full bg-[#F9F9F9] border border-transparent focus:border-primary focus:bg-white rounded-xl py-3 px-4 text-sm outline-none transition-all placeholder:text-gray-300 text-foreground font-medium"
+                  required
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-500 ml-1">Cognome</label>
+                <input
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Rossi"
+                  className="w-full bg-[#F9F9F9] border border-transparent focus:border-primary focus:bg-white rounded-xl py-3 px-4 text-sm outline-none transition-all placeholder:text-gray-300 text-foreground font-medium"
+                  required
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="lastName">Cognome</Label>
-              <Input 
-                id="lastName" 
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                className="rounded-xl bg-muted/50 border-transparent focus-visible:border-primary"
-                required 
-              />
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-gray-500 ml-1">Email</label>
+              <div className="relative">
+                <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="mario.rossi@email.com"
+                  className="w-full bg-[#F9F9F9] border border-transparent focus:border-primary focus:bg-white rounded-xl py-3 pl-10 pr-4 text-sm outline-none transition-all placeholder:text-gray-300 text-foreground font-medium"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-gray-500 ml-1">Telefono</label>
+              <div className="relative">
+                <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+39 333 1234567"
+                  className="w-full bg-[#F9F9F9] border border-transparent focus:border-primary focus:bg-white rounded-xl py-3 pl-10 pr-4 text-sm outline-none transition-all placeholder:text-gray-300 text-foreground font-medium"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-gray-500 ml-1">Password</label>
+              <div className="relative">
+                <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Crea una password sicura"
+                  className="w-full bg-[#F9F9F9] border border-transparent focus:border-primary focus:bg-white rounded-xl py-3 pl-10 pr-4 text-sm outline-none transition-all placeholder:text-gray-300 text-foreground font-medium"
+                  required
+                />
+              </div>
             </div>
           </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input 
-              id="email" 
-              type="email" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="la-tua@email.it"
-              className="rounded-xl bg-muted/50 border-transparent focus-visible:border-primary"
-              required 
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="phone">Telefono</Label>
-            <Input 
-              id="phone" 
-              type="tel" 
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+39 ..."
-              className="rounded-xl bg-muted/50 border-transparent focus-visible:border-primary"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input 
-              id="password" 
-              type="password" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="rounded-xl bg-muted/50 border-transparent focus-visible:border-primary"
-              required 
-            />
-          </div>
-          
-          <div className="flex items-start space-x-3 pt-4">
-            <Checkbox 
-              id="terms" 
-              checked={acceptedTerms} 
-              onCheckedChange={(c) => setAcceptedTerms(!!c)} 
+
+          <div className="flex items-start space-x-3 pt-4 px-1">
+            <Checkbox
+              id="terms"
+              checked={acceptedTerms}
+              onCheckedChange={(c) => setAcceptedTerms(!!c)}
               className="mt-1"
             />
             <div className="grid gap-1.5 leading-none">
-              <label
-                htmlFor="terms"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
+              <label htmlFor="terms" className="text-sm font-medium leading-none">
                 Accetto i termini e le condizioni
               </label>
               <p className="text-xs text-muted-foreground">
@@ -192,20 +197,20 @@ export default function Register() {
               </p>
             </div>
           </div>
-          
-          <Button 
-            type="submit" 
-            className="w-full h-12 rounded-xl text-lg font-medium mt-8" 
+
+          <button
+            type="submit"
             disabled={registerMutation.isPending}
+            className="w-full bg-primary text-white font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed mt-6"
           >
             {registerMutation.isPending ? "Creazione account..." : "Crea Account"}
-          </Button>
+          </button>
         </form>
-        
+
         <div className="mt-8 text-center">
           <span className="text-muted-foreground text-sm">Hai già un account? </span>
           <Link href="/login">
-            <span className="text-primary font-medium text-sm">Accedi</span>
+            <span className="text-primary font-bold text-sm">Accedi</span>
           </Link>
         </div>
       </div>

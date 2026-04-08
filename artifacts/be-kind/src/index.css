@@ -83,9 +83,9 @@
   /* Olive / Terracotta accents */
   --border: 40 20% 85%;
   
-  --card: 40 33% 97%;
+  --card: 0 0% 100%;
   --card-foreground: 24 10% 10%;
-  --card-border: 40 20% 85%;
+  --card-border: 40 20% 90%;
 
   --sidebar: 40 33% 97%;
   --sidebar-foreground: 24 10% 10%;
@@ -192,4 +192,27 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-serif;
   }
+}
+
+.shadow-soft {
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-card {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.active-elevate {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.active-elevate:active {
+  transform: scale(0.97);
 }

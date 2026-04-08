@@ -82,6 +82,18 @@
 - **Backend**: All at `/api/admin/*` with `requireAdmin` middleware
 - **Auth gate**: All admin API routes verify `isAdmin` flag. Frontend shows "Accesso Riservato" for non-admin users.
 
+## UI Design System
+
+- **Reference**: Google AI Studio-inspired clean mobile-first design
+- **Colors**: Primary = terracotta (#C6957C / hsl 15 60% 50%), Secondary = olive (#676959 / hsl 75 30% 40%), Background = warm cream (#FAF8F5)
+- **Cards**: Pure white (`bg-white`), `rounded-2xl`/`rounded-3xl`, `shadow-soft` (0 2px 15px rgba(0,0,0,0.06))
+- **Buttons**: Circular back buttons (`w-10 h-10 bg-white rounded-full shadow-soft`), primary CTA (`bg-primary text-white rounded-2xl`)
+- **Typography**: Serif headings (font-serif font-bold), clean sans-serif body
+- **Logo**: "BE KIND" in Fredoka font, color #C6957C, inline SVG
+- **Bottom Nav**: 5 tabs — Home, Menù, Be Kind (loyalty/Star), Bottega, Profilo; white bg, active tab shows label
+- **Image fallbacks**: Null `imageUrl` renders icon placeholder (UtensilsCrossed for dishes, Calendar for events) on `bg-secondary/10`
+- **CSS utilities**: `shadow-soft`, `shadow-card`, `no-scrollbar`, `active-elevate`
+
 ## Key Files
 
 - `lib/db/src/schema/users.ts` — Users table (email, googleId, loyalty, preferences, isAdmin)

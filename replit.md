@@ -105,6 +105,19 @@
 - **Frontend component**: `ImageUpload` (`components/image-upload.tsx`) — drag-and-drop + URL input, used in admin forms for dishes, products, events
 - **Server files**: `lib/objectStorage.ts`, `lib/objectAcl.ts`, `routes/storage.ts`
 
+## Receipt System (Ricevute)
+
+- **Auto-generated**: HTML receipts with restaurant branding, full client details, and IVA breakdown
+- **Restaurant orders**: `GET /api/receipts/orders/:id/receipt` — returns styled HTML receipt
+- **Shop orders**: `GET /api/receipts/shop/orders/:id/receipt` — returns styled HTML receipt
+- **Data captured**: Customer name, email, phone, codice fiscale/P.IVA, billing address, payment method
+- **Codice Fiscale**: Stored on users table (saved from profile), copied to order at creation time
+- **IVA**: 10% included in price, shown as imponibile + IVA on receipt
+- **Legal**: Footer includes P.IVA, C.F., D.P.R. 633/1972 reference
+- **Frontend**: "Scarica Ricevuta" button on order detail page and shop orders list; opens receipt in new tab with print support
+- **DB columns**: `codice_fiscale`, `billing_name`, `billing_address`, `payment_method` on orders + shop_orders tables; `codice_fiscale` on users table
+- **Route file**: `artifacts/api-server/src/routes/receipts.ts`
+
 ## Key Files
 
 - `lib/db/src/schema/users.ts` — Users table (email, googleId, loyalty, preferences, isAdmin)

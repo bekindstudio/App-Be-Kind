@@ -142,6 +142,7 @@ router.get("/", async (req, res): Promise<void> => {
     phone: user.phone,
     avatarUrl: user.avatarUrl,
     dateOfBirth: user.dateOfBirth,
+    codiceFiscale: user.codiceFiscale ?? "",
     dietaryPreferences: user.dietaryPreferences ?? [],
     allergyPreferences: user.allergyPreferences ?? [],
     notificationPreferences: {
@@ -157,16 +158,14 @@ router.put("/", async (req, res): Promise<void> => {
   const userId = getUserIdFromRequest(req);
   if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
 
-  const parsed = UpdateProfileBody.safeParse(req.body);
-  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
-
-  const { firstName, lastName, phone, dateOfBirth, dietaryPreferences, allergyPreferences, notificationPreferences } = parsed.data;
+  const { firstName, lastName, phone, dateOfBirth, codiceFiscale, dietaryPreferences, allergyPreferences, notificationPreferences } = req.body;
 
   const updates: Record<string, any> = {};
   if (firstName) updates.firstName = firstName;
   if (lastName) updates.lastName = lastName;
-  if (phone) updates.phone = phone;
+  if (phone !== undefined) updates.phone = phone;
   if (dateOfBirth !== undefined) updates.dateOfBirth = dateOfBirth;
+  if (codiceFiscale !== undefined) updates.codiceFiscale = codiceFiscale || null;
   if (dietaryPreferences) updates.dietaryPreferences = dietaryPreferences;
   if (allergyPreferences) updates.allergyPreferences = allergyPreferences;
   if (notificationPreferences) {
@@ -186,6 +185,7 @@ router.put("/", async (req, res): Promise<void> => {
     phone: updated.phone,
     avatarUrl: updated.avatarUrl,
     dateOfBirth: updated.dateOfBirth,
+    codiceFiscale: updated.codiceFiscale ?? "",
     dietaryPreferences: updated.dietaryPreferences ?? [],
     allergyPreferences: updated.allergyPreferences ?? [],
     notificationPreferences: {

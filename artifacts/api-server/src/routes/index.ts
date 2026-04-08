@@ -15,6 +15,7 @@ import { reviewsRouter } from "./reviews";
 import { adminRouter } from "./admin";
 import { paymentsRouter } from "./payments";
 import { notificationsRouter } from "./notifications";
+import { receiptsRouter } from "./receipts";
 import storageRouter from "./storage";
 
 const router: IRouter = Router();
@@ -36,5 +37,6 @@ router.use("/reviews", reviewsRouter);
 router.use("/notifications", notificationsRouter);
 router.use("/admin", adminRouter);
 router.use("/payments", paymentsRouter);
+router.use("/receipts", receiptsRouter);
 
 export default router;

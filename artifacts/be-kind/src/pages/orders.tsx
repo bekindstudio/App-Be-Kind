@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/hooks/use-auth-store";
 import { useGetOrders } from "@workspace/api-client-react";
 import { customFetch } from "@workspace/api-client-react/custom-fetch";
-import { ArrowLeft, Clock, Package, ShoppingBag, MapPin, Bike, Navigation, CheckCircle2, ChefHat, Store } from "lucide-react";
+import { ArrowLeft, Clock, Package, ShoppingBag, MapPin, Bike, Navigation, CheckCircle2, ChefHat, Store, Receipt } from "lucide-react";
 import { Link } from "wouter";
 import { useState, useEffect } from "react";
 
@@ -334,6 +334,23 @@ export default function Orders() {
                         <span className="font-bold text-primary">€{order.total.toFixed(2)}</span>
                       </div>
                     </div>
+
+                    <button
+                      onClick={() => {
+                        const baseUrl = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
+                        const url = `${baseUrl}/api/receipts/shop/orders/${order.id}/receipt`;
+                        const w = window.open("", "_blank");
+                        if (!w) return;
+                        fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+                          .then(r => r.text())
+                          .then(html => { w.document.write(html); w.document.close(); })
+                          .catch(() => w.close());
+                      }}
+                      className="w-full mt-3 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary/5 text-primary text-xs font-semibold active:scale-[0.97] transition-transform"
+                    >
+                      <Receipt className="w-3.5 h-3.5" />
+                      Scarica Ricevuta
+                    </button>
                   </div>
                 ))}
               </div>

@@ -180,6 +180,8 @@ router.post("/confirm-order", async (req, res): Promise<void> => {
     }
   }
 
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+
   const [order] = await db.insert(ordersTable).values({
     userId,
     orderNumber: generateOrderNumber(),
@@ -192,6 +194,10 @@ router.post("/confirm-order", async (req, res): Promise<void> => {
     pickupTime: pickupTime ?? null,
     estimatedDeliveryTime: type === "delivery" ? 40 : 25,
     notes: notes ?? null,
+    codiceFiscale: codiceFiscale || user?.codiceFiscale || null,
+    billingName: user ? `${user.firstName} ${user.lastName}` : null,
+    billingAddress: deliveryAddress ?? null,
+    paymentMethod: paymentMethod || "cash",
     pointsEarned,
   }).returning();
 
@@ -208,8 +214,6 @@ router.post("/confirm-order", async (req, res): Promise<void> => {
   ));
 
   await db.delete(cartItemsTable).where(eq(cartItemsTable.userId, userId));
-
-  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
   if (user) {
     const newPoints = user.loyaltyPoints + pointsEarned;
     const newLevel = computeLoyaltyLevel(newPoints);
@@ -376,6 +380,8 @@ router.post("/confirm-shop-order", async (req, res): Promise<void> => {
 
   const orderNumber = `BKS${Date.now().toString().slice(-8)}`;
 
+  const [shopUser] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+
   const [order] = await db.insert(shopOrdersTable).values({
     userId,
     orderNumber,
@@ -385,6 +391,10 @@ router.post("/confirm-shop-order", async (req, res): Promise<void> => {
     total,
     shippingAddress,
     trackingNumber: `TRK${Date.now().toString().slice(-10)}`,
+    codiceFiscale: shopUser?.codiceFiscale || null,
+    billingName: shopUser ? `${shopUser.firstName} ${shopUser.lastName}` : null,
+    billingAddress: shippingAddress,
+    paymentMethod: "card",
     pointsEarned,
   }).returning();
 
@@ -401,10 +411,8 @@ router.post("/confirm-shop-order", async (req, res): Promise<void> => {
   ));
 
   await db.delete(shopCartItemsTable).where(eq(shopCartItemsTable.userId, userId));
-
-  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
-  if (user) {
-    const newPoints = user.loyaltyPoints + pointsEarned;
+  if (shopUser) {
+    const newPoints = shopUser.loyaltyPoints + pointsEarned;
     const newLevel = computeLoyaltyLevel(newPoints);
     await db.update(usersTable).set({ loyaltyPoints: newPoints, loyaltyLevel: newLevel }).where(eq(usersTable.id, userId));
     await db.insert(loyaltyTransactionsTable).values({
@@ -415,7 +423,7 @@ router.post("/confirm-shop-order", async (req, res): Promise<void> => {
     });
   }
 
-  const userName = user ? `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.email : "Cliente";
+  const userName = shopUser ? `${shopUser.firstName || ""} ${shopUser.lastName || ""}`.trim() || shopUser.email : "Cliente";
   notifyAdmins(
     `Nuovo ordine Bottega #${orderNumber}`,
     `${userName} ha ordinato ${cartItems.length} prodott${cartItems.length === 1 ? "o" : "i"} per €${total.toFixed(2)} (Carta) — Spedizione: ${shippingAddress}`,

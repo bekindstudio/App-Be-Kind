@@ -68,6 +68,8 @@ router.post("/", async (req, res): Promise<void> => {
   const total = subtotal + shippingCost;
   const pointsEarned = Math.floor(total);
 
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+
   const [order] = await db.insert(shopOrdersTable).values({
     userId,
     orderNumber: generateOrderNumber(),
@@ -77,6 +79,10 @@ router.post("/", async (req, res): Promise<void> => {
     total,
     shippingAddress,
     trackingNumber: `TRK${Date.now().toString().slice(-10)}`,
+    codiceFiscale: user?.codiceFiscale || null,
+    billingName: user ? `${user.firstName} ${user.lastName}` : null,
+    billingAddress: shippingAddress,
+    paymentMethod: "cash",
     pointsEarned,
   }).returning();
 
@@ -93,9 +99,6 @@ router.post("/", async (req, res): Promise<void> => {
   ));
 
   await db.delete(shopCartItemsTable).where(eq(shopCartItemsTable.userId, userId));
-
-  // Award points
-  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
   if (user) {
     const newPoints = user.loyaltyPoints + pointsEarned;
     const newLevel = computeLoyaltyLevel(newPoints);

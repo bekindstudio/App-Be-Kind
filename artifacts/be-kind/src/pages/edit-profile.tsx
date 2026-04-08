@@ -18,6 +18,7 @@ export default function EditProfile() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
+  const [codiceFiscale, setCodiceFiscale] = useState("");
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -30,12 +31,13 @@ export default function EditProfile() {
       setFirstName(profile.firstName);
       setLastName(profile.lastName);
       setPhone(profile.phone || "");
+      setCodiceFiscale((profile as any).codiceFiscale || "");
     }
   }, [profile]);
 
   const handleSave = () => {
     updateProfileMutation.mutate({
-      data: { firstName, lastName, phone }
+      data: { firstName, lastName, phone, codiceFiscale } as any
     }, {
       onSuccess: () => {
         toast({ title: "Profilo aggiornato" });
@@ -124,6 +126,18 @@ export default function EditProfile() {
             onChange={(e) => setPhone(e.target.value)}
             className="h-12 bg-muted/50 rounded-xl"
           />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="codiceFiscale">Codice Fiscale / P.IVA</Label>
+          <Input 
+            id="codiceFiscale"
+            value={codiceFiscale}
+            onChange={(e) => setCodiceFiscale(e.target.value.toUpperCase())}
+            placeholder="RSSMRA85M01H501Z"
+            className="h-12 bg-muted/50 rounded-xl font-mono"
+            maxLength={16}
+          />
+          <p className="text-[10px] text-muted-foreground ml-1">Verrà usato automaticamente nelle ricevute dei tuoi ordini</p>
         </div>
         <div className="space-y-2 opacity-50">
           <Label>Email (non modificabile)</Label>

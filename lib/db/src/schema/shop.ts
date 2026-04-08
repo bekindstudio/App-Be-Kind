@@ -14,6 +14,10 @@ export const shopOrdersTable = pgTable("shop_orders", {
   trackingNumber: text("tracking_number"),
   pointsEarned: integer("points_earned").notNull().default(0),
   discountCode: text("discount_code"),
+  codiceFiscale: text("codice_fiscale"),
+  billingName: text("billing_name"),
+  billingAddress: text("billing_address"),
+  paymentMethod: text("payment_method"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });

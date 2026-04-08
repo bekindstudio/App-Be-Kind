@@ -5,8 +5,9 @@ import type { DeliveryTracking, Order } from "@workspace/api-client-react";
 import {
   ArrowLeft, CheckCircle2, Clock, MapPin, Package, Timer,
   Phone, Bike, Car, Navigation, ChefHat, CircleDot, Store,
-  Home as HomeIcon, Utensils
+  Home as HomeIcon, Utensils, Receipt
 } from "lucide-react";
+import { useAuthStore } from "@/hooks/use-auth-store";
 import { useParams } from "wouter";
 import { useEffect, useState } from "react";
 
@@ -376,7 +377,53 @@ export default function OrderDetail() {
             </div>
           </div>
         )}
+
+        <ReceiptButton orderId={order.id} orderType="restaurant" />
       </div>
     </PageTransition>
+  );
+}
+
+function ReceiptButton({ orderId, orderType }: { orderId: number; orderType: "restaurant" | "shop" }) {
+  const token = useAuthStore((state) => state.token);
+
+  const handleDownloadReceipt = () => {
+    const path = orderType === "shop"
+      ? `/api/receipts/shop/orders/${orderId}/receipt`
+      : `/api/receipts/orders/${orderId}/receipt`;
+
+    const baseUrl = import.meta.env.BASE_URL || "/";
+    const url = `${baseUrl.replace(/\/$/, "")}${path}`;
+    
+    const receiptWindow = window.open("", "_blank");
+    if (!receiptWindow) return;
+
+    fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.text())
+      .then((html) => {
+        receiptWindow.document.write(html);
+        receiptWindow.document.close();
+      })
+      .catch(() => {
+        receiptWindow.close();
+      });
+  };
+
+  return (
+    <button
+      onClick={handleDownloadReceipt}
+      className="w-full bg-card rounded-[24px] p-5 border border-border/30 shadow-sm flex items-center gap-4 active:scale-[0.98] transition-transform"
+    >
+      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+        <Receipt className="w-6 h-6 text-primary" />
+      </div>
+      <div className="text-left flex-1">
+        <p className="font-serif font-bold text-base">Scarica Ricevuta</p>
+        <p className="text-xs text-muted-foreground">Documento fiscale con tutti i dettagli</p>
+      </div>
+      <ArrowLeft className="w-4 h-4 text-muted-foreground rotate-180" />
+    </button>
   );
 }

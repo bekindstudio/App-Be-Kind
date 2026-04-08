@@ -15,6 +15,10 @@ export const eventsTable = pgTable("events", {
   price: doublePrecision("price").notNull().default(0),
   maxParticipants: integer("max_participants").notNull(),
   isFree: boolean("is_free").notNull().default(false),
+  wixEventId: text("wix_event_id"),
+  wixSlug: text("wix_slug"),
+  wixTicketUrl: text("wix_ticket_url"),
+  wixStatus: text("wix_status"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

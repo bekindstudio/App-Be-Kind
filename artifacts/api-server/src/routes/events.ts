@@ -2,8 +2,17 @@ import { Router } from "express";
 import { db, eventsTable, eventRegistrationsTable, usersTable, loyaltyTransactionsTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { getUserIdFromRequest, computeLoyaltyLevel } from "./auth";
+import {
+  syncWixEventsToDb,
+  shouldSync,
+  resetSyncTimer,
+  fetchWixTicketDefinitions,
+  createTicketReservation,
+  checkoutReservation,
+} from "../wix-events";
 
 const router = Router();
+const WIX_ENABLED = !!(process.env.WIX_API_KEY && process.env.WIX_ACCOUNT_ID);
 
 async function formatEvent(event: any, userId?: number | null) {
   const registrations = await db.select().from(eventRegistrationsTable)
@@ -34,7 +43,22 @@ async function formatEvent(event: any, userId?: number | null) {
     isFull,
     isFree: event.isFree,
     isRegistered,
+    wixEventId: event.wixEventId || null,
+    wixSlug: event.wixSlug || null,
+    wixTicketUrl: event.wixTicketUrl || null,
+    wixStatus: event.wixStatus || null,
+    isWixEvent: !!event.wixEventId,
   };
+}
+
+async function autoSync() {
+  if (WIX_ENABLED && shouldSync()) {
+    try {
+      await syncWixEventsToDb();
+    } catch (err: any) {
+      console.error("[Events] Auto-sync failed:", err.message);
+    }
+  }
 }
 
 router.get("/my-registrations", async (req, res): Promise<void> => {
@@ -60,6 +84,8 @@ router.get("/my-registrations", async (req, res): Promise<void> => {
 });
 
 router.get("/", async (req, res): Promise<void> => {
+  await autoSync();
+
   const userId = getUserIdFromRequest(req);
   const { category, upcoming } = req.query as Record<string, string>;
 
@@ -80,6 +106,16 @@ router.get("/", async (req, res): Promise<void> => {
   res.json(enriched);
 });
 
+router.post("/sync-wix", async (_req, res): Promise<void> => {
+  if (!WIX_ENABLED) {
+    res.json({ synced: 0, errors: ["Wix not configured"] });
+    return;
+  }
+  resetSyncTimer();
+  const result = await syncWixEventsToDb();
+  res.json(result);
+});
+
 router.get("/:id", async (req, res): Promise<void> => {
   const userId = getUserIdFromRequest(req);
   const id = parseInt(req.params.id);
@@ -87,7 +123,27 @@ router.get("/:id", async (req, res): Promise<void> => {
   const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, id)).limit(1);
   if (!event) { res.status(404).json({ error: "Event not found" }); return; }
 
-  res.json(await formatEvent(event, userId));
+  const formatted = await formatEvent(event, userId);
+
+  if (event.wixEventId) {
+    try {
+      const tickets = await fetchWixTicketDefinitions(event.wixEventId);
+      (formatted as any).wixTickets = tickets.map(t => ({
+        id: t.id,
+        name: t.name,
+        description: t.description,
+        price: t.price?.value || "0",
+        currency: t.price?.currency || "EUR",
+        free: t.free || false,
+        saleStatus: t.saleStatus,
+      }));
+    } catch (err: any) {
+      console.error("[Events] Failed to fetch Wix tickets:", err.message);
+      (formatted as any).wixTickets = [];
+    }
+  }
+
+  res.json(formatted);
 });
 
 router.post("/:id/register", async (req, res): Promise<void> => {
@@ -103,7 +159,6 @@ router.post("/:id/register", async (req, res): Promise<void> => {
     .limit(1);
 
   if (existingReg[0]) {
-    // Reactivate if cancelled
     if (existingReg[0].status === "cancelled") {
       const [updated] = await db.update(eventRegistrationsTable)
         .set({ status: "confirmed" })
@@ -124,6 +179,60 @@ router.post("/:id/register", async (req, res): Promise<void> => {
     return;
   }
 
+  if (event.wixEventId && WIX_ENABLED) {
+    try {
+      const { ticketDefinitionId, quantity } = req.body;
+      const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+
+      if (ticketDefinitionId && user) {
+        const reservation = await createTicketReservation(event.wixEventId, ticketDefinitionId, quantity || 1);
+
+        const checkoutResult = await checkoutReservation(
+          event.wixEventId,
+          reservation.id,
+          {
+            firstName: user.firstName || "Ospite",
+            lastName: user.lastName || "",
+            email: user.email,
+            phone: user.phone || undefined,
+          }
+        );
+
+        const [reg] = await db.insert(eventRegistrationsTable).values({
+          eventId,
+          userId,
+          status: "confirmed",
+          qrCode: `BK-WIX-${event.wixEventId}-${userId}-${Date.now()}`,
+        }).returning();
+
+        const newPoints = user.loyaltyPoints + 30;
+        const newLevel = computeLoyaltyLevel(newPoints);
+        await db.update(usersTable).set({ loyaltyPoints: newPoints, loyaltyLevel: newLevel }).where(eq(usersTable.id, userId));
+        await db.insert(loyaltyTransactionsTable).values({
+          userId,
+          points: 30,
+          type: "earned",
+          reason: `Partecipazione evento: ${event.title}`,
+        });
+
+        res.json({
+          id: reg.id,
+          eventId: reg.eventId,
+          eventTitle: event.title,
+          eventDate: event.date,
+          qrCode: reg.qrCode,
+          status: reg.status,
+          createdAt: reg.createdAt?.toISOString?.() ?? reg.createdAt,
+          wixOrderNumber: checkoutResult?.orderNumber || null,
+          wixCheckoutUrl: event.wixTicketUrl,
+        });
+        return;
+      }
+    } catch (err: any) {
+      console.error("[Events] Wix checkout failed:", err.message);
+    }
+  }
+
   const [reg] = await db.insert(eventRegistrationsTable).values({
     eventId,
     userId,
@@ -131,7 +240,6 @@ router.post("/:id/register", async (req, res): Promise<void> => {
     qrCode: `BK-EVT-${eventId}-${userId}-${Date.now()}`,
   }).returning();
 
-  // Award 30 points for event registration
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
   if (user) {
     const newPoints = user.loyaltyPoints + 30;

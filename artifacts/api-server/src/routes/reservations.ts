@@ -195,13 +195,12 @@ router.post("/", async (req, res): Promise<void> => {
         const heldReservation = heldResult?.reservation;
 
         if (heldReservation) {
-          const nameParts = (user.name || "Ospite").split(" ");
-          const reserveResult = await reserveReservation(
+            const reserveResult = await reserveReservation(
             heldReservation.id,
             heldReservation.revision || "1",
             {
-              firstName: nameParts[0] || "Ospite",
-              lastName: nameParts.slice(1).join(" ") || "",
+              firstName: user.firstName || "Ospite",
+              lastName: user.lastName || "",
               email: user.email,
               phone: user.phone || undefined,
             },

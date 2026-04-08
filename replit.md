@@ -17,7 +17,7 @@
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
-- **External integrations**: Wix (Table Reservations, site management)
+- **External integrations**: Wix (Table Reservations, Events sync, site management)
 
 ## Modules
 
@@ -25,7 +25,7 @@
 2. **Table Reservations** — Calendar + time slots, Wix Table Reservations integration (fallback to local DB)
 3. **Delivery/Takeaway** — Cart, ordering flow
 4. **E-Commerce Shop** — Products, shop cart
-5. **Events & Workshops** — Event catalog + registration
+5. **Events & Workshops** — Event catalog + registration, auto-synced from Wix Events with ticketing links
 6. **Loyalty** — Points system (Seed/Sprout/Bloom/Tree tiers) + stamp cards
 7. **Profile** — User dashboard, preferences, order history
 
@@ -41,6 +41,10 @@
 - **Site ID**: `3025aa6e-3b50-4fba-abcb-f11194028de3`
 - **Cattolica Location ID**: `a151fa65-753a-402e-9e1a-9f3deb3527f2` (ONLY location used)
 - **Status**: Wix Table Reservations app is installed on site but API key returns 404 — needs "Wix Restaurants - Table Reservations" permission on the API key
+- **Wix Events**: Auto-synced every 5 min via `GET /api/events` or manually via `POST /api/events/sync-wix`
+- **Wix Site URL**: `https://www.bekindcommunity.it`
+- **Events Ticketing**: Wix events redirect to `bekindcommunity.it/event-details/{slug}` for booking/payment
+- **Events Schema**: `wixEventId`, `wixSlug`, `wixTicketUrl`, `wixStatus` fields on events table
 - **Fallback**: All reservation endpoints gracefully fall back to local PostgreSQL DB
 - **Hours (local fallback)**: Breakfast/Brunch 08:30-12:00, Lunch 12:00-15:00, Cena 18:00-23:00, closed Monday
 - **Max covers per slot**: 40
@@ -85,6 +89,7 @@
 - `artifacts/api-server/src/routes/admin.ts` — Admin CRUD routes (dishes, events, products)
 - `artifacts/api-server/src/routes/reservations.ts` — Reservation routes + Wix fallback
 - `artifacts/api-server/src/wix-bookings.ts` — Wix Table Reservations API wrapper
+- `artifacts/api-server/src/wix-events.ts` — Wix Events API wrapper (sync, tickets, checkout)
 - `artifacts/be-kind/src/pages/login.tsx` — Login page with Google Sign-In
 - `artifacts/be-kind/src/pages/admin/` — Admin panel pages (dashboard, forms, lists)
 - `artifacts/be-kind/src/hooks/use-admin.ts` — Admin hooks (queries + mutations)

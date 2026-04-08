@@ -4,34 +4,19 @@ import { eq, and } from "drizzle-orm";
 import { getUserIdFromRequest, computeLoyaltyLevel } from "./auth";
 import { CreateReservationBody, UpdateReservationBody } from "@workspace/api-zod";
 import {
-  listWixServices,
-  queryAvailability,
-  createWixBooking,
-  queryWixBookings,
-  cancelWixBooking,
+  getReservationLocationId,
+  getTimeSlots,
+  createHeldReservation,
+  reserveReservation,
+  listReservations,
+  cancelReservation,
+  listReservationLocations,
   getSiteId,
 } from "../wix-bookings";
 
 const router = Router();
 
 const WIX_ENABLED = !!(process.env.WIX_API_KEY && process.env.WIX_ACCOUNT_ID);
-
-let cachedServiceId: string | null = null;
-async function getWixServiceId(): Promise<string | null> {
-  if (cachedServiceId) return cachedServiceId;
-  try {
-    const result = await listWixServices();
-    const services = result?.services || [];
-    if (services.length > 0) {
-      cachedServiceId = services[0].id;
-      console.log(`[Wix] Found service: ${services[0].name} (${cachedServiceId})`);
-      return cachedServiceId;
-    }
-  } catch (err: any) {
-    console.error("[Wix] Failed to list services:", err.message);
-  }
-  return null;
-}
 
 const LUNCH_SLOTS = ["12:00", "12:30", "13:00", "13:30", "14:00", "14:30"];
 const DINNER_SLOTS = ["19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30"];
@@ -49,29 +34,37 @@ function formatReservation(r: any) {
   };
 }
 
-function formatWixBooking(booking: any) {
-  const slot = booking.bookedEntity?.slot || {};
-  const startDate = slot.startDate ? new Date(slot.startDate) : null;
+function formatWixReservation(r: any) {
+  const details = r.details || {};
+  const startDate = details.startDate ? new Date(details.startDate) : null;
+  const statusMap: Record<string, string> = {
+    HELD: "pending",
+    REQUESTED: "pending",
+    RESERVED: "confirmed",
+    SEATED: "confirmed",
+    FINISHED: "completed",
+    CANCELED: "cancelled",
+    DECLINED: "cancelled",
+    NO_SHOW: "cancelled",
+    PAYMENT_PENDING: "pending",
+  };
   return {
-    id: booking.bookingId || booking.id,
+    id: r.id,
     date: startDate ? startDate.toISOString().split("T")[0] : "",
     time: startDate
       ? `${String(startDate.getHours()).padStart(2, "0")}:${String(startDate.getMinutes()).padStart(2, "0")}`
       : "",
-    guests: booking.numberOfParticipants || 1,
-    status: (booking.status || "").toLowerCase() === "confirmed"
-      ? "confirmed"
-      : (booking.status || "").toLowerCase() === "canceled"
-        ? "cancelled"
-        : booking.status?.toLowerCase() || "pending",
-    notes: booking.additionalFields?.[0]?.value || "",
-    createdAt: booking.createdDate || new Date().toISOString(),
-    wixBookingId: booking.bookingId || booking.id,
+    guests: details.partySize || 1,
+    status: statusMap[r.status] || r.status?.toLowerCase() || "pending",
+    notes: r.additionalInfo || "",
+    createdAt: r.createdDate || new Date().toISOString(),
+    wixReservationId: r.id,
+    wixStatus: r.status,
   };
 }
 
 router.get("/availability", async (req, res): Promise<void> => {
-  const { date } = req.query as { date: string; guests: string };
+  const { date, guests } = req.query as { date: string; guests: string };
   if (!date) {
     res.status(400).json({ error: "date required" });
     return;
@@ -85,17 +78,16 @@ router.get("/availability", async (req, res): Promise<void> => {
 
   if (WIX_ENABLED) {
     try {
-      const serviceId = await getWixServiceId();
-      if (serviceId) {
-        const startDate = `${date}T00:00:00.000Z`;
-        const endDate = `${date}T23:59:59.000Z`;
-        const result = await queryAvailability(serviceId, startDate, endDate);
-        const entries = result?.availabilityEntries || [];
+      const locationId = await getReservationLocationId();
+      if (locationId) {
+        const partySize = parseInt(guests) || 2;
+        const result = await getTimeSlots(locationId, date, partySize);
+        const timeSlots = result?.timeSlots || [];
 
-        const wixSlots = entries
-          .filter((e: any) => e.bookable)
-          .map((e: any) => {
-            const start = new Date(e.slot.startDate);
+        const wixSlots = timeSlots
+          .filter((ts: any) => ts.status === "AVAILABLE")
+          .map((ts: any) => {
+            const start = new Date(ts.startDate);
             return `${String(start.getHours()).padStart(2, "0")}:${String(start.getMinutes()).padStart(2, "0")}`;
           });
 
@@ -103,7 +95,7 @@ router.get("/availability", async (req, res): Promise<void> => {
         return;
       }
     } catch (err: any) {
-      console.error("[Wix] Availability query failed, falling back to local:", err.message);
+      console.error("[Wix] Time slots query failed, falling back to local:", err.message);
     }
   }
 
@@ -139,17 +131,15 @@ router.get("/", async (req, res): Promise<void> => {
         .limit(1);
 
       if (user?.email) {
-        const result = await queryWixBookings({
-          "contactDetails.email": { $eq: user.email },
+        const result = await listReservations({
+          "reservee.email": { $eq: user.email },
         });
-        const bookings = (result?.bookings || result?.extendedBookings || []).map((b: any) =>
-          formatWixBooking(b.booking || b)
-        );
-        res.json(bookings);
+        const reservations = (result?.reservations || []).map(formatWixReservation);
+        res.json(reservations);
         return;
       }
     } catch (err: any) {
-      console.error("[Wix] Query bookings failed, falling back to local:", err.message);
+      console.error("[Wix] List reservations failed, falling back to local:", err.message);
     }
   }
 
@@ -177,40 +167,42 @@ router.post("/", async (req, res): Promise<void> => {
 
   if (WIX_ENABLED) {
     try {
-      const serviceId = await getWixServiceId();
+      const locationId = await getReservationLocationId();
       const [user] = await db
         .select()
         .from(usersTable)
         .where(eq(usersTable.id, userId))
         .limit(1);
 
-      if (serviceId && user) {
+      if (locationId && user) {
         const [hours, minutes] = time.split(":").map(Number);
         const startDate = new Date(`${date}T00:00:00.000Z`);
         startDate.setUTCHours(hours, minutes, 0, 0);
-        const endDate = new Date(startDate.getTime() + 90 * 60 * 1000);
 
-        const slot = {
-          serviceId,
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString(),
-          timezone: "Europe/Rome",
-          location: { type: "BUSINESS" },
-        };
+        const heldResult = await createHeldReservation(
+          locationId,
+          startDate.toISOString(),
+          guests
+        );
+        const heldReservation = heldResult?.reservation;
 
-        const nameParts = (user.name || "Guest").split(" ");
-        const contactDetails = {
-          firstName: nameParts[0] || "Guest",
-          lastName: nameParts.slice(1).join(" ") || "",
-          email: user.email,
-          phone: user.phone || undefined,
-        };
+        if (heldReservation) {
+          const nameParts = (user.name || "Ospite").split(" ");
+          const reserveResult = await reserveReservation(
+            heldReservation.id,
+            heldReservation.revision || "1",
+            {
+              firstName: nameParts[0] || "Ospite",
+              lastName: nameParts.slice(1).join(" ") || "",
+              email: user.email,
+              phone: user.phone || undefined,
+            },
+            notes || undefined
+          );
 
-        const wixResult = await createWixBooking(slot, contactDetails, guests);
-        const wixBooking = wixResult?.booking;
+          const finalReservation = reserveResult?.reservation || heldReservation;
 
-        if (wixBooking) {
-          const [reservation] = await db
+          const [localReservation] = await db
             .insert(reservationsTable)
             .values({
               userId,
@@ -236,14 +228,15 @@ router.post("/", async (req, res): Promise<void> => {
           });
 
           res.status(201).json({
-            ...formatReservation(reservation),
-            wixBookingId: wixBooking.bookingId || wixBooking.id,
+            ...formatReservation(localReservation),
+            wixReservationId: finalReservation.id,
+            wixStatus: finalReservation.status,
           });
           return;
         }
       }
     } catch (err: any) {
-      console.error("[Wix] Create booking failed, falling back to local:", err.message);
+      console.error("[Wix] Create reservation failed, falling back to local:", err.message);
     }
   }
 
@@ -363,35 +356,39 @@ router.delete("/:id", async (req, res): Promise<void> => {
   res.json({ message: "Reservation cancelled" });
 });
 
-router.get("/wix/services", async (_req, res): Promise<void> => {
-  if (!WIX_ENABLED) {
-    res.json({ enabled: false, services: [] });
-    return;
-  }
-  try {
-    const result = await listWixServices();
-    res.json({ enabled: true, services: result?.services || [] });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 router.get("/wix/status", async (_req, res): Promise<void> => {
   if (!WIX_ENABLED) {
     res.json({ connected: false, message: "Wix credentials not configured" });
     return;
   }
   try {
-    const serviceId = await getWixServiceId();
+    const siteId = await getSiteId();
+    const locationId = await getReservationLocationId();
     res.json({
-      connected: !!serviceId,
-      serviceId,
-      message: serviceId
-        ? "Connected to Wix Bookings"
-        : "Connected but no booking services found",
+      connected: !!locationId,
+      siteId,
+      locationId,
+      message: locationId
+        ? "Connesso a Wix Table Reservations"
+        : siteId
+          ? "Sito trovato ma nessuna location di prenotazione configurata"
+          : "Impossibile trovare il sito Wix",
     });
   } catch (err: any) {
     res.json({ connected: false, message: err.message });
+  }
+});
+
+router.get("/wix/locations", async (_req, res): Promise<void> => {
+  if (!WIX_ENABLED) {
+    res.json({ enabled: false, locations: [] });
+    return;
+  }
+  try {
+    const result = await listReservationLocations();
+    res.json({ enabled: true, locations: result?.reservationLocations || [] });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
   }
 });
 

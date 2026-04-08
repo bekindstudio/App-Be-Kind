@@ -3,6 +3,7 @@ const WIX_API_KEY = process.env.WIX_API_KEY!;
 const WIX_ACCOUNT_ID = process.env.WIX_ACCOUNT_ID!;
 
 let resolvedSiteId: string | null = null;
+let cachedLocationId: string | null = null;
 
 function accountHeaders(): Record<string, string> {
   return {
@@ -39,7 +40,6 @@ async function rawFetch(path: string, options: RequestInit = {}): Promise<any> {
 
 async function discoverSiteId(): Promise<string | null> {
   if (resolvedSiteId) return resolvedSiteId;
-
   try {
     const result = await rawFetch("/site-list/v2/sites/query", {
       method: "POST",
@@ -49,11 +49,10 @@ async function discoverSiteId(): Promise<string | null> {
     const sites = result?.sites || [];
     console.log(`[Wix] Found ${sites.length} site(s)`);
     for (const site of sites) {
-      console.log(`[Wix]   - ${site.displayName || site.name} (id: ${site.id}, published: ${site.published})`);
+      console.log(`[Wix]   - ${site.displayName || site.name} (id: ${site.id})`);
     }
     if (sites.length > 0) {
       resolvedSiteId = sites[0].id;
-      console.log(`[Wix] Using site: ${resolvedSiteId}`);
       return resolvedSiteId;
     }
   } catch (err: any) {
@@ -65,7 +64,6 @@ async function discoverSiteId(): Promise<string | null> {
 async function siteFetch(path: string, options: RequestInit = {}): Promise<any> {
   const siteId = await discoverSiteId();
   if (!siteId) throw new Error("No Wix site found for this account");
-
   return rawFetch(path, {
     ...options,
     headers: {
@@ -79,75 +77,101 @@ export async function getSiteId(): Promise<string | null> {
   return discoverSiteId();
 }
 
-export async function listWixServices(): Promise<any> {
-  return siteFetch("/bookings/v2/services/query", {
-    method: "POST",
-    body: JSON.stringify({ query: {} }),
-  });
+export async function listReservationLocations(): Promise<any> {
+  try {
+    return await siteFetch("/table-reservations/v1/reservation-locations", {
+      method: "GET",
+    });
+  } catch (err: any) {
+    console.error("[Wix] reservation-locations v1 failed:", err.message);
+    return await siteFetch("/table-reservations/reservations/v1/reservation-locations", {
+      method: "GET",
+    });
+  }
 }
 
-export async function queryAvailability(
-  serviceId: string,
-  startDate: string,
-  endDate: string,
-  timezone = "Europe/Rome",
-  slotsPerDay = 20
+export async function getReservationLocationId(): Promise<string | null> {
+  if (cachedLocationId) return cachedLocationId;
+  try {
+    const result = await listReservationLocations();
+    const locations = result?.reservationLocations || [];
+    console.log(`[Wix] Found ${locations.length} reservation location(s)`);
+    for (const loc of locations) {
+      console.log(`[Wix]   - ${loc.default ? "(default)" : ""} id: ${loc.id}, archived: ${loc.archived}`);
+    }
+    const active = locations.find((l: any) => !l.archived);
+    if (active) {
+      cachedLocationId = active.id;
+      return cachedLocationId;
+    }
+  } catch (err: any) {
+    console.error("[Wix] Failed to list reservation locations:", err.message);
+  }
+  return null;
+}
+
+export async function getTimeSlots(
+  reservationLocationId: string,
+  date: string,
+  partySize: number
 ): Promise<any> {
-  return siteFetch("/bookings/v1/availability/query", {
+  return siteFetch("/table-reservations/v1/time-slots", {
     method: "POST",
     body: JSON.stringify({
-      query: {
-        filter: {
-          serviceId: [serviceId],
-          startDate,
-          endDate,
-          bookable: true,
-        },
-        sort: [{ fieldName: "startDate", order: "ASC" }],
-      },
-      timezone,
-      slotsPerDay,
+      reservationLocationId,
+      date,
+      partySize,
     }),
   });
 }
 
-export async function createWixBooking(
-  slot: any,
-  contactDetails: {
+export async function createHeldReservation(
+  reservationLocationId: string,
+  startDate: string,
+  partySize: number
+): Promise<any> {
+  return siteFetch("/table-reservations/v1/reservations/held", {
+    method: "POST",
+    body: JSON.stringify({
+      reservation: {
+        reservationLocationId,
+        details: {
+          startDate,
+          partySize,
+        },
+      },
+    }),
+  });
+}
+
+export async function reserveReservation(
+  reservationId: string,
+  revision: string,
+  reservee: {
     firstName: string;
     lastName: string;
     email: string;
     phone?: string;
   },
-  numberOfParticipants: number,
-  formInfo?: Record<string, any>
+  additionalInfo?: string
 ): Promise<any> {
   const body: any = {
-    booking: {
-      bookedEntity: { slot },
-      contactDetails,
-      numberOfParticipants,
-    },
-    flowControlSettings: {
-      skipAvailabilityValidation: false,
-      skipBusinessConfirmation: false,
-    },
+    revision,
+    reservee,
   };
-
-  if (formInfo) {
-    body.booking.formInfo = formInfo;
+  if (additionalInfo) {
+    body.additionalInfo = additionalInfo;
   }
-
-  return siteFetch("/bookings/v2/bookings", {
+  return siteFetch(`/table-reservations/v1/reservations/${reservationId}/reserve`, {
     method: "POST",
     body: JSON.stringify(body),
   });
 }
 
-export async function queryWixBookings(
+export async function listReservations(
   filter: Record<string, any> = {}
 ): Promise<any> {
-  return siteFetch("/bookings/v2/bookings/query-extended", {
+  return siteFetch("/table-reservations/v1/reservations/query", {
     method: "POST",
     body: JSON.stringify({
       query: {
@@ -158,20 +182,23 @@ export async function queryWixBookings(
   });
 }
 
-export async function cancelWixBooking(bookingId: string): Promise<any> {
-  return siteFetch(`/bookings/v2/bookings/${bookingId}/cancel`, {
-    method: "POST",
-    body: JSON.stringify({
-      participantNotification: { notifyParticipants: true },
-    }),
+export async function getReservation(reservationId: string): Promise<any> {
+  return siteFetch(`/table-reservations/v1/reservations/${reservationId}`, {
+    method: "GET",
   });
 }
 
-export async function confirmWixBooking(bookingId: string): Promise<any> {
-  return siteFetch(`/bookings/v2/bookings/${bookingId}/confirm`, {
-    method: "POST",
+export async function cancelReservation(
+  reservationId: string,
+  revision: string
+): Promise<any> {
+  return siteFetch(`/table-reservations/v1/reservations/${reservationId}`, {
+    method: "PATCH",
     body: JSON.stringify({
-      participantNotification: { notifyParticipants: true },
+      reservation: {
+        status: "CANCELED",
+      },
+      revision,
     }),
   });
 }
